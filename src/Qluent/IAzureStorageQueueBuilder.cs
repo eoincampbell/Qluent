@@ -16,7 +16,10 @@ namespace Qluent
 
         IAzureStorageQueueBuilder<T> ThatIsTransactionScopeAware();
 
-        IAzureStorageQueueBuilder<T> ThatSendsPoisonMessagesToThisQueue(string poisonQueueName);
+        IAzureStorageQueueBuilder<T> ThatSendsPoisonMessagesTo(string poisonQueueName, int afterAttempts = 3);
+
         IAzureStorageQueueBuilder<T> AndSwallowsExceptionsOnPoisonMessages();
+
+        IAzureStorageQueueBuilder<T> WhereMessageVisibilityTimesOutAfter(int milliseconds = 30000);
     }
 }

@@ -26,6 +26,8 @@ namespace Qluent.Queues
         private readonly Func<string, T> _customDeserialize;
 
         private readonly BehaviorOnPoisonMessage _behaviorOnPoisonMessage;
+        private readonly int? _considerPoisonAfterDequeueAttempts;
+        private readonly int _visibilityTimeout;
 
 
         internal SimpleAzureStorageQueue(
@@ -33,8 +35,10 @@ namespace Qluent.Queues
             string queueName,
             BehaviorOnPoisonMessage behaviorOnPoisonMessage = BehaviorOnPoisonMessage.ThrowException,
             string poisonQueueName = null,
+            int? considerPoisonAfterAttemptCount = null,
             Func<T, string> serlializer = null,
-            Func<string, T> deserializer = null)
+            Func<string, T> deserializer = null,
+            int visibilityTimeout = 30000)
         { 
             var cloudStorageAccount = CloudStorageAccount.Parse(connectionString);
             var cloudQueueClient = cloudStorageAccount.CreateCloudQueueClient();
@@ -48,10 +52,14 @@ namespace Qluent.Queues
                 _poisonQueue.CreateIfNotExistsAsync();
             }
 
+            _considerPoisonAfterDequeueAttempts = considerPoisonAfterAttemptCount;
+
             _customSerialize = serlializer;
             _customDeserialize = deserializer;
 
             _behaviorOnPoisonMessage = behaviorOnPoisonMessage;
+
+            _visibilityTimeout = visibilityTimeout;
 
         }
 
@@ -97,7 +105,7 @@ namespace Qluent.Queues
             {
                 try
                 {
-                    if (_poisonQueue != null)
+                    if (_poisonQueue != null && _considerPoisonAfterDequeueAttempts <= qMsg.DequeueCount)
                     {
                         var poisonMessage = new CloudQueueMessage(qMsg.AsString);
 
@@ -108,7 +116,7 @@ namespace Qluent.Queues
                 {
                     // ignored
                 }
-                
+
                 if (_behaviorOnPoisonMessage == BehaviorOnPoisonMessage.SwallowException)
                 {
                     return default(T); 
@@ -120,29 +128,42 @@ namespace Qluent.Queues
 
         public async Task<T> PopAsync()
         {
-            var qMsg = await _cloudQueue.GetMessageAsync();
+            var qMsg = await _cloudQueue.GetMessageAsync(TimeSpan.FromMilliseconds(_visibilityTimeout), null, null);
+
+            if (qMsg == null)
+            {
+                return default(T);
+            }
 
             var deserializedMessage = await GetDeserializedMessage(qMsg);
 
-            await _cloudQueue.DeleteMessageAsync(qMsg);
+            if (deserializedMessage != null)
+            {
+                await _cloudQueue.DeleteMessageAsync(qMsg);
+            }
 
             return deserializedMessage;
         }
 
         public async Task<IEnumerable<T>> PopAsync(int messageCount)
         {
-            var qMsgs = (await _cloudQueue.GetMessagesAsync(messageCount)).ToList();
+            var qMsgs = (await _cloudQueue.GetMessagesAsync(messageCount, TimeSpan.FromMilliseconds(_visibilityTimeout), null, null)).ToList();
 
             var objects = new List<T>();
+            var qMsgsToDelete = new List<CloudQueueMessage>();
 
             foreach (var qMsg in qMsgs)
             {
                 var deserializedMessage = await GetDeserializedMessage(qMsg);
 
-                objects.Add(deserializedMessage);
+                if (deserializedMessage != null)
+                {
+                    objects.Add(deserializedMessage);
+                    qMsgsToDelete.Add(qMsg);
+                }
             }
 
-            foreach (var qMsg in qMsgs)
+            foreach (var qMsg in qMsgsToDelete)
             {
                 await _cloudQueue.DeleteMessageAsync(qMsg);
             }

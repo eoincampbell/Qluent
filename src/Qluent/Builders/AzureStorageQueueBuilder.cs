@@ -8,11 +8,13 @@ namespace Qluent.Builders
         private string _connectionString = "UseDevelopmentStorage=true";
         private string _queueName;
         private string _poisonQueueName;
+        private int _considerMessagesPoisonAfterAttempts;
         private bool _swallowExceptionOnPoisonMessage;
         private bool _transactionScopeAware;
 
         private Func<T, string> _customSerialize;
         private Func<string, T> _customDeserialize;
+        private int _messageVisibilityTimeout = 30000;
 
         public IAzureStorageQueue<T> Build()
         {
@@ -21,10 +23,10 @@ namespace Qluent.Builders
                 behavior = BehaviorOnPoisonMessage.SwallowException;
 
             return _transactionScopeAware
-                ? new TransactionalAzureStorageQueue<T>(_connectionString, _queueName, behavior, _poisonQueueName,
-                    _customSerialize, _customDeserialize)
-                : new SimpleAzureStorageQueue<T>(_connectionString, _queueName, behavior, _poisonQueueName,
-                    _customSerialize, _customDeserialize);
+                ? new TransactionalAzureStorageQueue<T>(_connectionString, _queueName, behavior, _poisonQueueName, _considerMessagesPoisonAfterAttempts,
+                    _customSerialize, _customDeserialize, _messageVisibilityTimeout)
+                : new SimpleAzureStorageQueue<T>(_connectionString, _queueName, behavior, _poisonQueueName, _considerMessagesPoisonAfterAttempts,
+                    _customSerialize, _customDeserialize, _messageVisibilityTimeout);
         }
 
         public IAzureStorageQueueBuilder<T> ConnectedToAccount(string connectionString)
@@ -56,15 +58,22 @@ namespace Qluent.Builders
             return this;
         }
 
-        public IAzureStorageQueueBuilder<T> ThatSendsPoisonMessagesToThisQueue(string poisonQueueName)
+        public IAzureStorageQueueBuilder<T> ThatSendsPoisonMessagesTo(string poisonQueueName, int afterAttempts = 3)
         {
             _poisonQueueName = poisonQueueName;
+            _considerMessagesPoisonAfterAttempts = afterAttempts;
             return this;
         }
 
         public IAzureStorageQueueBuilder<T> AndSwallowsExceptionsOnPoisonMessages()
         {
             _swallowExceptionOnPoisonMessage = true;
+            return this;
+        }
+
+        public IAzureStorageQueueBuilder<T> WhereMessageVisibilityTimesOutAfter(int milliseconds)
+        {
+            _messageVisibilityTimeout = milliseconds;
             return this;
         }
     }

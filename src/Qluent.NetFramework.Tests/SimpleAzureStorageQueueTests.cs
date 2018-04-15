@@ -138,7 +138,7 @@ namespace Qluent.NetFramework.Tests
             var jobQueue = Builder
                 .CreateAQueueOf<Job>()
                 .UsingStorageQueue("my-test-queue")
-                .ThatSendsPoisonMessagesToThisQueue("my-poison-queue")
+                .ThatSendsPoisonMessagesTo("my-poison-queue", 1)
                 .Build();
 
             Assert.ThrowsAsync<JsonReaderException>(async () => await jobQueue.PopAsync());
@@ -193,7 +193,7 @@ namespace Qluent.NetFramework.Tests
             var jobQueue = Builder
                 .CreateAQueueOf<Job>()
                 .UsingStorageQueue("my-test-queue")
-                .ThatSendsPoisonMessagesToThisQueue("my-poison-queue")
+                .ThatSendsPoisonMessagesTo("my-poison-queue", afterAttempts: 1)
                 .AndSwallowsExceptionsOnPoisonMessages()
                 .Build();
 
@@ -226,5 +226,53 @@ namespace Qluent.NetFramework.Tests
             var nullJob = await jobQueue.PopAsync();
             Assert.IsNull(nullJob);
         }
+
+        [Test]
+        public async Task Given_a_simple_queue_When_a_poison_message_is_popped_with_an_attempt_threshold_and_a_poison_queue_is_defined_and_exceptions_should_be_swallowed_Then_a_message_should_be_sent_to_the_poison_queue_after_three_attempts()
+        {
+            var poisonQueue = Builder
+                .CreateAQueueOf<string>()
+                .UsingStorageQueue("my-poison-queue")
+                .Build();
+
+            await poisonQueue.PurgeAsync();
+
+
+            var personQueue = Builder
+                .CreateAQueueOf<Person>()
+                .UsingStorageQueue("my-test-queue")
+                .WithACustomSerializer(CustomSerializationHelper.Base64Serializer)
+                .Build();
+
+            var person = Person.Create();
+            await personQueue.PurgeAsync();
+            await personQueue.PushAsync(person);
+            Assert.AreEqual(1, await personQueue.CountAsync());
+
+
+            var jobQueue = Builder
+                .CreateAQueueOf<Job>()
+                .UsingStorageQueue("my-test-queue")
+                .ThatSendsPoisonMessagesTo("my-poison-queue", afterAttempts: 3)
+                .AndSwallowsExceptionsOnPoisonMessages()
+                .WhereMessageVisibilityTimesOutAfter(500)
+                .Build();
+
+            var nullJob = await jobQueue.PopAsync();
+            Assert.IsNull(nullJob);
+            Assert.AreEqual(0, await poisonQueue.CountAsync());
+            await Task.Delay(1000);
+
+            nullJob = await jobQueue.PopAsync();
+            Assert.IsNull(nullJob);
+            Assert.AreEqual(0, await poisonQueue.CountAsync());
+            await Task.Delay(1000);
+
+            nullJob = await jobQueue.PopAsync();
+            Assert.IsNull(nullJob);
+            Assert.AreEqual(1, await poisonQueue.CountAsync());
+        }
+
+
     }
 }

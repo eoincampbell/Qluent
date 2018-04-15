@@ -10,8 +10,22 @@ namespace Qluent.Queues
         private bool _deferEnqueueUntilCommitted;
         private List<T> _deferredMessages;
 
-        internal TransactionalAzureStorageQueue(string connectionString, string queueName, BehaviorOnPoisonMessage behaviorOnPoisonMessage = BehaviorOnPoisonMessage.ThrowException, string poisonQueueName = null, Func<T, string> serlializer = null, Func<string, T> deserializer = null) 
-            : base(connectionString, queueName, behaviorOnPoisonMessage, poisonQueueName, serlializer, deserializer)
+        internal TransactionalAzureStorageQueue(string connectionString, 
+            string queueName, 
+            BehaviorOnPoisonMessage behaviorOnPoisonMessage = BehaviorOnPoisonMessage.ThrowException, 
+            string poisonQueueName = null,
+            int considerPoisonAfterAttemptCount = 3,
+            Func<T, string> serlializer = null, 
+            Func<string, T> deserializer = null,
+            int visibilityTimeout = 30000) 
+                : base(connectionString, 
+                      queueName, 
+                      behaviorOnPoisonMessage, 
+                      poisonQueueName, 
+                      considerPoisonAfterAttemptCount, 
+                      serlializer, 
+                      deserializer,
+                      visibilityTimeout)
         {
         }
 
