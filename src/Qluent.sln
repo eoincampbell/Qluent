@@ -5,9 +5,15 @@ VisualStudioVersion = 15.0.26730.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Qluent", "Qluent\Qluent.csproj", "{E7F04B34-BECC-4EBC-AC0F-C11803009A9D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qluent.NetCore.Tests", "Qluent.NetCore.Tests\Qluent.NetCore.Tests.csproj", "{97F9F112-433C-4EEE-9195-5AF14E4BA957}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Qluent.NetCore.Tests", "Qluent.NetCore.Tests\Qluent.NetCore.Tests.csproj", "{97F9F112-433C-4EEE-9195-5AF14E4BA957}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qluent.NetFramework.Tests", "Qluent.NetFramework.Tests\Qluent.NetFramework.Tests.csproj", "{28729069-27ED-48A0-A496-4E493830BF76}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{81A17AC0-5051-40F5-BDCA-2530DA283926}"
+	ProjectSection(SolutionItems) = preProject
+		..\LICENSE = ..\LICENSE
+		..\README.md = ..\README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
