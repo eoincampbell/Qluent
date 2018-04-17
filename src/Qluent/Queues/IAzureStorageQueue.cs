@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Qluent
+namespace Qluent.Queues
 {
     public interface IAzureStorageQueue<T>
     {

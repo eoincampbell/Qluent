@@ -222,3 +222,11 @@ var q = Builder
 ``` 
 
 To create a custom binary serializer, implement the interface `Qluent.Serialization.IStringMessageSerializer<T>`
+
+
+## Todo List
+
+- Support Pop Receipts so that the consumer can decide how to handle messages
+- Write up the docs around message visibility when the above is done
+- .NET Core Tests
+- Include NLog/ILogger calls so that you can hook in your logging framework

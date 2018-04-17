@@ -1,7 +1,7 @@
-﻿using Qluent.Serialization;
-using System;
+﻿using Qluent.Queues;
+using Qluent.Serialization;
 
-namespace Qluent
+namespace Qluent.Builders
 {
     public interface IAzureStorageQueueBuilder<T>
     {

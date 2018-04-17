@@ -79,89 +79,6 @@ namespace Qluent.Queues
             }
         }
 
-        protected async Task Enqueue(T entity)
-        {
-            var qMsg = ToCloudQueueMessage(entity);
-
-            await _cloudQueue.AddMessageAsync(qMsg);
-        }
-
-        private CloudQueueMessage ToCloudQueueMessage(T entity)
-        {
-            CloudQueueMessage qMsg = null;
-            if (_customBinarySerializer != null)
-            {
-                byte[] serializedMessage = _customBinarySerializer.Serialize(entity);
-                qMsg = new CloudQueueMessage("");
-                qMsg.SetMessageContent(serializedMessage);
-            }
-            else
-            {
-                var serializedMessage = (_customStringSerializer ?? _defaultSerializer).Serialize(entity);
-                qMsg = new CloudQueueMessage(serializedMessage);
-            }
-
-            return qMsg;
-        }
-
-        private CloudQueueMessage ToCloudQueueMessage(CloudQueueMessage poisonMessage)
-        {
-            CloudQueueMessage qMsg = null;
-            if (_customBinarySerializer != null)
-            {
-                qMsg = new CloudQueueMessage(string.Empty);
-                qMsg.SetMessageContent(poisonMessage.AsBytes);
-            }
-            else
-            {
-                qMsg = new CloudQueueMessage(poisonMessage.AsString);
-            }
-
-            return qMsg;
-        }
-
-        private async Task<T> FromCloudQueueMessage(CloudQueueMessage qMsg)
-        {
-            try
-            {
-                if (_customBinarySerializer != null)
-                {
-                    return _customBinarySerializer.Deserialize(qMsg.AsBytes);
-                }
-                else
-                {
-                    return (_customStringSerializer ?? _defaultSerializer).Deserialize(qMsg.AsString);
-                }
-            }
-            catch
-            {
-                try
-                {
-                    if (_poisonQueue != null && _considerPoisonAfterDequeueAttempts <= qMsg.DequeueCount)
-                    {
-                        var poisonMessage = ToCloudQueueMessage(qMsg);
-
-                        await _poisonQueue.AddMessageAsync(qMsg);
-                    }
-                    if (_considerPoisonAfterDequeueAttempts <= qMsg.DequeueCount)
-                    {
-                        await _cloudQueue.DeleteMessageAsync(qMsg);
-                    }
-                }
-                catch
-                {
-                    // ignored
-                }
-
-                if (_behaviorOnPoisonMessage == BehaviorOnPoisonMessage.SwallowException)
-                {
-                    return default(T); 
-                }
-                throw;
-            }
-
-        }
-
         public async Task<T> PeekAsync()
         {
             var qMsg = await _cloudQueue.PeekMessageAsync();
@@ -244,5 +161,92 @@ namespace Qluent.Queues
             await _cloudQueue.FetchAttributesAsync();
             return _cloudQueue.ApproximateMessageCount;
         }
+
+        #region Implements IAzureStorageQueue
+
+        protected async Task Enqueue(T entity)
+        {
+            var qMsg = ToCloudQueueMessage(entity);
+
+            await _cloudQueue.AddMessageAsync(qMsg);
+        }
+
+        private CloudQueueMessage ToCloudQueueMessage(T entity)
+        {
+            CloudQueueMessage qMsg = null;
+            if (_customBinarySerializer != null)
+            {
+                byte[] serializedMessage = _customBinarySerializer.Serialize(entity);
+                qMsg = new CloudQueueMessage("");
+                qMsg.SetMessageContent(serializedMessage);
+            }
+            else
+            {
+                var serializedMessage = (_customStringSerializer ?? _defaultSerializer).Serialize(entity);
+                qMsg = new CloudQueueMessage(serializedMessage);
+            }
+
+            return qMsg;
+        }
+
+        private CloudQueueMessage ToCloudQueueMessage(CloudQueueMessage poisonMessage)
+        {
+            CloudQueueMessage qMsg = null;
+            if (_customBinarySerializer != null)
+            {
+                qMsg = new CloudQueueMessage(string.Empty);
+                qMsg.SetMessageContent(poisonMessage.AsBytes);
+            }
+            else
+            {
+                qMsg = new CloudQueueMessage(poisonMessage.AsString);
+            }
+
+            return qMsg;
+        }
+
+        private async Task<T> FromCloudQueueMessage(CloudQueueMessage qMsg)
+        {
+            try
+            {
+                if (_customBinarySerializer != null)
+                {
+                    return _customBinarySerializer.Deserialize(qMsg.AsBytes);
+                }
+                else
+                {
+                    return (_customStringSerializer ?? _defaultSerializer).Deserialize(qMsg.AsString);
+                }
+            }
+            catch
+            {
+                try
+                {
+                    if (_poisonQueue != null && _considerPoisonAfterDequeueAttempts <= qMsg.DequeueCount)
+                    {
+                        var poisonMessage = ToCloudQueueMessage(qMsg);
+
+                        await _poisonQueue.AddMessageAsync(qMsg);
+                    }
+                    if (_considerPoisonAfterDequeueAttempts <= qMsg.DequeueCount)
+                    {
+                        await _cloudQueue.DeleteMessageAsync(qMsg);
+                    }
+                }
+                catch
+                {
+                    // ignored
+                }
+
+                if (_behaviorOnPoisonMessage == BehaviorOnPoisonMessage.SwallowException)
+                {
+                    return default(T);
+                }
+                throw;
+            }
+
+        }
+
+        #endregion
     }
 }

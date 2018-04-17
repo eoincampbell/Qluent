@@ -9,20 +9,24 @@ namespace Qluent.Builders
         private string _connectionString = "UseDevelopmentStorage=true";
         private string _queueName;
         private string _poisonQueueName;
+
         private int _considerMessagesPoisonAfterAttempts = 10;
+        private int _messageVisibilityTimeout = 30000;
+
         private bool _swallowExceptionOnPoisonMessage;
         private bool _transactionScopeAware;
 
         private IStringMessageSerializer<T> _customStringSerializer;
         private IBinaryMessageSerializer<T> _customBinarySerializer;
 
-        private int _messageVisibilityTimeout = 30000;
-
         public IAzureStorageQueue<T> Build()
         {
             var behavior = BehaviorOnPoisonMessage.ThrowException;
+
             if (_swallowExceptionOnPoisonMessage)
+            {
                 behavior = BehaviorOnPoisonMessage.SwallowException;
+            }
 
             return _transactionScopeAware
                 ? new TransactionalAzureStorageQueue<T>(_connectionString, _queueName, behavior, _poisonQueueName, _considerMessagesPoisonAfterAttempts,
