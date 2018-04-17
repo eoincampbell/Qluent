@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Qluent.Serialization;
+using System;
 
 namespace Qluent
 {
@@ -10,15 +11,15 @@ namespace Qluent
 
         IAzureStorageQueueBuilder<T> UsingStorageQueue(string queueName);
 
-        IAzureStorageQueueBuilder<T> WithACustomSerializer(Func<T, string> serlializer);
-
-        IAzureStorageQueueBuilder<T> WithACustomDeserializer(Func<string, T> deserializer);
-
+        IAzureStorageQueueBuilder<T> WithACustomStringSerializer(IStringMessageSerializer<T> customSerlializer);
+        
+        IAzureStorageQueueBuilder<T> WithACustomBinarySerializer(IBinaryMessageSerializer<T> customSerlializer);      
+        
         IAzureStorageQueueBuilder<T> ThatIsTransactionScopeAware();
 
         IAzureStorageQueueBuilder<T> ThatSendsPoisonMessagesTo(string poisonQueueName, int afterAttempts = 3);
 
-        IAzureStorageQueueBuilder<T> AndSwallowsExceptionsOnPoisonMessages();
+        IAzureStorageQueueBuilder<T> AndSwallowExceptionsOnPoisonMessages();
 
         IAzureStorageQueueBuilder<T> WhereMessageVisibilityTimesOutAfter(int milliseconds = 30000);
     }

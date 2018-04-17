@@ -74,37 +74,73 @@ namespace Qluent.NetFramework.Tests
         }
 
         [Test]
-        public async Task Given_a_simple_queue_When_a_message_is_pushed_using_a_custom_serializer_Then_a_message_should_be_added_to_the_queue()
+        public async Task Given_a_simple_queue_When_a_message_is_pushed_using_a_custom_string_serializer_Then_a_message_should_be_added_to_the_queue()
         {
             var q = Builder
                 .CreateAQueueOf<Person>()
                 .ConnectedToAccount("UseDevelopmentStorage=true")
                 .UsingStorageQueue("my-test-queue")
-                .WithACustomSerializer(CustomSerializationHelper.Base64Serializer)
+                .WithACustomStringSerializer(new CustomBase64Serializer())
                 .Build();
 
             var message = Person.Create();
 
             await q.PurgeAsync();
-            await q.PushAsync(message);    
+            await q.PushAsync(message);
             Assert.AreEqual(1, await q.CountAsync());
         }
 
         [Test]
-        public async Task Given_a_simple_queue_When_a_message_is_popped_using_a_custom_deserializer_Then_a_message_should_be_removed_from_the_queue()
+        public async Task Given_a_simple_queue_When_a_message_is_popped_using_a_custom_string_deserializer_Then_a_message_should_be_removed_from_the_queue()
         {
             var q = Builder
                 .CreateAQueueOf<Person>()
                 .ConnectedToAccount("UseDevelopmentStorage=true")
                 .UsingStorageQueue("my-test-queue")
-                .WithACustomSerializer(CustomSerializationHelper.Base64Serializer)
-                .WithACustomDeserializer(CustomSerializationHelper.Base64Deserializer)
+                .WithACustomStringSerializer(new CustomBase64Serializer())
                 .Build();
 
             var message = Person.Create();
 
             await q.PurgeAsync();
-            await q.PushAsync(message);            
+            await q.PushAsync(message);
+            Assert.AreEqual(1, await q.CountAsync());
+
+            var response = await q.PopAsync();
+            Assert.AreEqual("John", response.Name);
+            Assert.AreEqual(0, await q.CountAsync());
+        }
+        [Test]
+        public async Task Given_a_simple_queue_When_a_message_is_pushed_using_a_custom_binary_serializer_Then_a_message_should_be_added_to_the_queue()
+        {
+            var q = Builder
+                .CreateAQueueOf<Person>()
+                .ConnectedToAccount("UseDevelopmentStorage=true")
+                .UsingStorageQueue("my-test-queue")
+                .WithACustomBinarySerializer(new CustomBinarySerializer())
+                .Build();
+
+            var message = Person.Create();
+
+            await q.PurgeAsync();
+            await q.PushAsync(message);
+            Assert.AreEqual(1, await q.CountAsync());
+        }
+
+        [Test]
+        public async Task Given_a_simple_queue_When_a_message_is_popped_using_a_custom_binary_deserializer_Then_a_message_should_be_removed_from_the_queue()
+        {
+            var q = Builder
+                .CreateAQueueOf<Person>()
+                .ConnectedToAccount("UseDevelopmentStorage=true")
+                .UsingStorageQueue("my-test-queue")
+                .WithACustomBinarySerializer(new CustomBinarySerializer())
+                .Build();
+
+            var message = Person.Create();
+
+            await q.PurgeAsync();
+            await q.PushAsync(message);
             Assert.AreEqual(1, await q.CountAsync());
 
             var response = await q.PopAsync();
@@ -127,7 +163,7 @@ namespace Qluent.NetFramework.Tests
             var personQueue = Builder
                 .CreateAQueueOf<Person>()
                 .UsingStorageQueue("my-test-queue")
-                .WithACustomSerializer(CustomSerializationHelper.Base64Serializer)
+                .WithACustomStringSerializer(new CustomBase64Serializer())
                 .Build();
 
             var person = Person.Create();
@@ -152,7 +188,7 @@ namespace Qluent.NetFramework.Tests
             var personQueue = Builder
                 .CreateAQueueOf<Person>()
                 .UsingStorageQueue("my-test-queue")
-                .WithACustomSerializer(CustomSerializationHelper.Base64Serializer)
+                .WithACustomStringSerializer(new CustomBase64Serializer())
                 .Build();
 
             var person = Person.Create();
@@ -182,7 +218,7 @@ namespace Qluent.NetFramework.Tests
             var personQueue = Builder
                 .CreateAQueueOf<Person>()
                 .UsingStorageQueue("my-test-queue")
-                .WithACustomSerializer(CustomSerializationHelper.Base64Serializer)
+                .WithACustomStringSerializer(new CustomBase64Serializer())
                 .Build();
 
             var person = Person.Create();
@@ -194,7 +230,7 @@ namespace Qluent.NetFramework.Tests
                 .CreateAQueueOf<Job>()
                 .UsingStorageQueue("my-test-queue")
                 .ThatSendsPoisonMessagesTo("my-poison-queue", afterAttempts: 1)
-                .AndSwallowsExceptionsOnPoisonMessages()
+                .AndSwallowExceptionsOnPoisonMessages()
                 .Build();
 
             var nullJob = await jobQueue.PopAsync();
@@ -209,7 +245,7 @@ namespace Qluent.NetFramework.Tests
             var personQueue = Builder
                 .CreateAQueueOf<Person>()
                 .UsingStorageQueue("my-test-queue")
-                .WithACustomSerializer(CustomSerializationHelper.Base64Serializer)
+                .WithACustomStringSerializer(new CustomBase64Serializer())
                 .Build();
 
             var person = Person.Create();
@@ -220,7 +256,7 @@ namespace Qluent.NetFramework.Tests
             var jobQueue = Builder
                 .CreateAQueueOf<Job>()
                 .UsingStorageQueue("my-test-queue")
-                .AndSwallowsExceptionsOnPoisonMessages()
+                .AndSwallowExceptionsOnPoisonMessages()
                 .Build();
 
             var nullJob = await jobQueue.PopAsync();
@@ -241,7 +277,7 @@ namespace Qluent.NetFramework.Tests
             var personQueue = Builder
                 .CreateAQueueOf<Person>()
                 .UsingStorageQueue("my-test-queue")
-                .WithACustomSerializer(CustomSerializationHelper.Base64Serializer)
+                .WithACustomStringSerializer(new CustomBase64Serializer())
                 .Build();
 
             var person = Person.Create();
@@ -254,7 +290,7 @@ namespace Qluent.NetFramework.Tests
                 .CreateAQueueOf<Job>()
                 .UsingStorageQueue("my-test-queue")
                 .ThatSendsPoisonMessagesTo("my-poison-queue", afterAttempts: 3)
-                .AndSwallowsExceptionsOnPoisonMessages()
+                .AndSwallowExceptionsOnPoisonMessages()
                 .WhereMessageVisibilityTimesOutAfter(500)
                 .Build();
 

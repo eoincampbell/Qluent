@@ -1,5 +1,6 @@
 ﻿using System;
 using Qluent.Queues;
+using Qluent.Serialization;
 
 namespace Qluent.Builders
 {
@@ -8,12 +9,13 @@ namespace Qluent.Builders
         private string _connectionString = "UseDevelopmentStorage=true";
         private string _queueName;
         private string _poisonQueueName;
-        private int _considerMessagesPoisonAfterAttempts;
+        private int _considerMessagesPoisonAfterAttempts = 10;
         private bool _swallowExceptionOnPoisonMessage;
         private bool _transactionScopeAware;
 
-        private Func<T, string> _customSerialize;
-        private Func<string, T> _customDeserialize;
+        private IStringMessageSerializer<T> _customStringSerializer;
+        private IBinaryMessageSerializer<T> _customBinarySerializer;
+
         private int _messageVisibilityTimeout = 30000;
 
         public IAzureStorageQueue<T> Build()
@@ -24,9 +26,9 @@ namespace Qluent.Builders
 
             return _transactionScopeAware
                 ? new TransactionalAzureStorageQueue<T>(_connectionString, _queueName, behavior, _poisonQueueName, _considerMessagesPoisonAfterAttempts,
-                    _customSerialize, _customDeserialize, _messageVisibilityTimeout)
+                    _customStringSerializer, _customBinarySerializer, _messageVisibilityTimeout)
                 : new SimpleAzureStorageQueue<T>(_connectionString, _queueName, behavior, _poisonQueueName, _considerMessagesPoisonAfterAttempts,
-                    _customSerialize, _customDeserialize, _messageVisibilityTimeout);
+                    _customStringSerializer, _customBinarySerializer, _messageVisibilityTimeout);
         }
 
         public IAzureStorageQueueBuilder<T> ConnectedToAccount(string connectionString)
@@ -41,17 +43,18 @@ namespace Qluent.Builders
             return this;
         }
 
-        public IAzureStorageQueueBuilder<T> WithACustomSerializer(Func<T, string> serlializer)
+        public IAzureStorageQueueBuilder<T> WithACustomStringSerializer(IStringMessageSerializer<T> customSerlializer)
         {
-            _customSerialize = serlializer;
+            _customStringSerializer = customSerlializer;
             return this;
         }
 
-        public IAzureStorageQueueBuilder<T> WithACustomDeserializer(Func<string, T> deserializer)
+        public IAzureStorageQueueBuilder<T> WithACustomBinarySerializer(IBinaryMessageSerializer<T> customSerlializer)
         {
-            _customDeserialize = deserializer;
+            _customBinarySerializer = customSerlializer;
             return this;
         }
+
         public IAzureStorageQueueBuilder<T> ThatIsTransactionScopeAware()
         {
             _transactionScopeAware = true;
@@ -65,7 +68,7 @@ namespace Qluent.Builders
             return this;
         }
 
-        public IAzureStorageQueueBuilder<T> AndSwallowsExceptionsOnPoisonMessages()
+        public IAzureStorageQueueBuilder<T> AndSwallowExceptionsOnPoisonMessages()
         {
             _swallowExceptionOnPoisonMessage = true;
             return this;

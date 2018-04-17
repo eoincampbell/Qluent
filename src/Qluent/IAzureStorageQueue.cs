@@ -8,6 +8,7 @@ namespace Qluent
         Task PushAsync(T message);
         Task PushAsync(IEnumerable<T> messages);
         Task<T> PeekAsync();
+        Task<IEnumerable<T>> PeekAsync(int messageCount);
         Task<T> PopAsync();
         Task<IEnumerable<T>> PopAsync(int messageCount);
         Task PurgeAsync();

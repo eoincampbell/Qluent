@@ -1,6 +1,6 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
-using Newtonsoft.Json;
+using Qluent.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,25 +19,28 @@ namespace Qluent.Queues
         private readonly CloudQueue _cloudQueue;
         private readonly CloudQueue _poisonQueue;
 
-        private readonly Func<T, string> _defaultSerialize = (obj) => JsonConvert.SerializeObject(obj);
-        private readonly Func<string, T> _defaultDeserialize = JsonConvert.DeserializeObject<T>;
 
-        private readonly Func<T, string> _customSerialize;
-        private readonly Func<string, T> _customDeserialize;
+        private readonly IMessageSerializer<T, string> _defaultSerializer = new DefaultMessageSerializer<T>();
+
+        private readonly IStringMessageSerializer<T> _customStringSerializer;
+        private readonly IBinaryMessageSerializer<T> _customBinarySerializer;
 
         private readonly BehaviorOnPoisonMessage _behaviorOnPoisonMessage;
-        private readonly int? _considerPoisonAfterDequeueAttempts;
+        private readonly int _considerPoisonAfterDequeueAttempts;
         private readonly int _visibilityTimeout;
 
 
         internal SimpleAzureStorageQueue(
             string connectionString, 
             string queueName,
+
             BehaviorOnPoisonMessage behaviorOnPoisonMessage = BehaviorOnPoisonMessage.ThrowException,
             string poisonQueueName = null,
-            int? considerPoisonAfterAttemptCount = null,
-            Func<T, string> serlializer = null,
-            Func<string, T> deserializer = null,
+            int considerPoisonAfterAttemptCount = 5,
+
+            IStringMessageSerializer<T> customStringSerializer = null,
+            IBinaryMessageSerializer<T> customBinarySerializer = null,
+
             int visibilityTimeout = 30000)
         { 
             var cloudStorageAccount = CloudStorageAccount.Parse(connectionString);
@@ -54,8 +57,8 @@ namespace Qluent.Queues
 
             _considerPoisonAfterDequeueAttempts = considerPoisonAfterAttemptCount;
 
-            _customSerialize = serlializer;
-            _customDeserialize = deserializer;
+            _customStringSerializer = customStringSerializer;
+            _customBinarySerializer = customBinarySerializer;
 
             _behaviorOnPoisonMessage = behaviorOnPoisonMessage;
 
@@ -76,30 +79,59 @@ namespace Qluent.Queues
             }
         }
 
-        protected async Task Enqueue(T message)
+        protected async Task Enqueue(T entity)
         {
-            var serializedMessage = (_customSerialize ?? _defaultSerialize)(message);
-
-            CloudQueueMessage qMsg = new CloudQueueMessage(serializedMessage);
+            var qMsg = ToCloudQueueMessage(entity);
 
             await _cloudQueue.AddMessageAsync(qMsg);
         }
 
-        public async Task<T> PeekAsync()
+        private CloudQueueMessage ToCloudQueueMessage(T entity)
         {
-            var qMsg = await _cloudQueue.PeekMessageAsync();
+            CloudQueueMessage qMsg = null;
+            if (_customBinarySerializer != null)
+            {
+                byte[] serializedMessage = _customBinarySerializer.Serialize(entity);
+                qMsg = new CloudQueueMessage("");
+                qMsg.SetMessageContent(serializedMessage);
+            }
+            else
+            {
+                var serializedMessage = (_customStringSerializer ?? _defaultSerializer).Serialize(entity);
+                qMsg = new CloudQueueMessage(serializedMessage);
+            }
 
-            var deserializedMessage = await GetDeserializedMessage(qMsg);
-
-            return deserializedMessage;
+            return qMsg;
         }
 
-        private async Task<T> GetDeserializedMessage(CloudQueueMessage qMsg)
+        private CloudQueueMessage ToCloudQueueMessage(CloudQueueMessage poisonMessage)
         {
+            CloudQueueMessage qMsg = null;
+            if (_customBinarySerializer != null)
+            {
+                qMsg = new CloudQueueMessage(string.Empty);
+                qMsg.SetMessageContent(poisonMessage.AsBytes);
+            }
+            else
+            {
+                qMsg = new CloudQueueMessage(poisonMessage.AsString);
+            }
 
+            return qMsg;
+        }
+
+        private async Task<T> FromCloudQueueMessage(CloudQueueMessage qMsg)
+        {
             try
             {
-                return (_customDeserialize ?? _defaultDeserialize)(qMsg.AsString);
+                if (_customBinarySerializer != null)
+                {
+                    return _customBinarySerializer.Deserialize(qMsg.AsBytes);
+                }
+                else
+                {
+                    return (_customStringSerializer ?? _defaultSerializer).Deserialize(qMsg.AsString);
+                }
             }
             catch
             {
@@ -107,9 +139,13 @@ namespace Qluent.Queues
                 {
                     if (_poisonQueue != null && _considerPoisonAfterDequeueAttempts <= qMsg.DequeueCount)
                     {
-                        var poisonMessage = new CloudQueueMessage(qMsg.AsString);
+                        var poisonMessage = ToCloudQueueMessage(qMsg);
 
-                        await _poisonQueue.AddMessageAsync(poisonMessage);
+                        await _poisonQueue.AddMessageAsync(qMsg);
+                    }
+                    if (_considerPoisonAfterDequeueAttempts <= qMsg.DequeueCount)
+                    {
+                        await _cloudQueue.DeleteMessageAsync(qMsg);
                     }
                 }
                 catch
@@ -126,6 +162,34 @@ namespace Qluent.Queues
 
         }
 
+        public async Task<T> PeekAsync()
+        {
+            var qMsg = await _cloudQueue.PeekMessageAsync();
+
+            var deserializedMessage = await FromCloudQueueMessage(qMsg);
+
+            return deserializedMessage;
+        }
+
+        public async Task<IEnumerable<T>> PeekAsync(int messageCount)
+        {
+            var qMsgs = (await _cloudQueue.PeekMessagesAsync(messageCount)).ToList();
+
+            var objects = new List<T>();
+
+            foreach (var qMsg in qMsgs)
+            {
+                var deserializedMessage = await FromCloudQueueMessage(qMsg);
+
+                if (deserializedMessage != null)
+                {
+                    objects.Add(deserializedMessage);
+                }
+            }
+
+            return objects;
+        }
+
         public async Task<T> PopAsync()
         {
             var qMsg = await _cloudQueue.GetMessageAsync(TimeSpan.FromMilliseconds(_visibilityTimeout), null, null);
@@ -135,7 +199,7 @@ namespace Qluent.Queues
                 return default(T);
             }
 
-            var deserializedMessage = await GetDeserializedMessage(qMsg);
+            var deserializedMessage = await FromCloudQueueMessage(qMsg);
 
             if (deserializedMessage != null)
             {
@@ -154,7 +218,7 @@ namespace Qluent.Queues
 
             foreach (var qMsg in qMsgs)
             {
-                var deserializedMessage = await GetDeserializedMessage(qMsg);
+                var deserializedMessage = await FromCloudQueueMessage(qMsg);
 
                 if (deserializedMessage != null)
                 {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Qluent.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -14,17 +15,19 @@ namespace Qluent.Queues
             string queueName, 
             BehaviorOnPoisonMessage behaviorOnPoisonMessage = BehaviorOnPoisonMessage.ThrowException, 
             string poisonQueueName = null,
-            int considerPoisonAfterAttemptCount = 3,
-            Func<T, string> serlializer = null, 
-            Func<string, T> deserializer = null,
+            int considerPoisonAfterAttemptCount = 5,
+
+            IStringMessageSerializer<T> _customStringSerializer = null,
+            IBinaryMessageSerializer<T> _customBinarySerializer = null,
+
             int visibilityTimeout = 30000) 
                 : base(connectionString, 
                       queueName, 
                       behaviorOnPoisonMessage, 
                       poisonQueueName, 
-                      considerPoisonAfterAttemptCount, 
-                      serlializer, 
-                      deserializer,
+                      considerPoisonAfterAttemptCount,
+                      _customStringSerializer,
+                      _customBinarySerializer, 
                       visibilityTimeout)
         {
         }
