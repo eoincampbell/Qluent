@@ -226,6 +226,8 @@ To create a custom binary serializer, implement the interface `Qluent.Serializat
 
 ## Todo List
 
+- Document calls properlty
+- Support Cancellation Tokens so that they can be passed through. 
 - Support Pop Receipts so that the consumer can decide how to handle messages
 - Write up the docs around message visibility when the above is done
 - .NET Core Tests
