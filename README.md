@@ -2,17 +2,17 @@
 
 ## What is this?
 
-Qluent is a library that provides a ***very simple*** Fluent API and wrapper 
+Qluent is a library that provides a ***very simple*** Fluent Async API and wrapper 
 class around the Microsoft Azure Storage libraries to allow you to interact 
 with storage queues using strongly typed objects.
 
 It lets you interact with a queue like this.
 
 ```csharp
-var q = Builder
+var q = await Builder
     .CreateAQueueOf<Person>()
     .UsingStorageQueue("my-test-queue")
-    .Build();
+    .BuildAsync();
     
 var person = await q.PopAsync();
 ```
@@ -43,6 +43,13 @@ This gets even more convoluted when you want to do something a little more compl
 with visibility timeouts, handling poison messages, etc. I wanted a way to simplify 
 it.
 
+
+I'm also not a fan of the architectural decision in the SDK to leave settings like
+message visbility up to the developer to decide on at the call site. If you're 
+going to create your queues and access them via a DI framework, I'd prefer to 
+centralize/standardize these settings at queue creation.
+
+
 ## What is this not?
 
 This API is designed to be simple. It provide you an easy way to 
@@ -66,13 +73,39 @@ If you don't specify a storage account, the builder will generate a queue connec
 to development storage by default.
 
 ```csharp
-var q = Builder
+var q = await Builder
     .CreateAQueueOf<Person>()
     .UsingStorageQueue("my-test-queue")
-    .Build();
+    .BuildAsync();
 ```
 
 Alternatively, you can explicitly provide a connection string to a storage account
+
+```csharp
+var q = await Builder
+    .CreateAQueueOf<Person>()
+    .ConnectedToAccount("UseDevelopmentStorage=true")
+    .UsingStorageQueue("my-test-queue")
+    .BuildAsync();
+```
+
+
+### Async & Await
+
+The library is built against the .NET Standard 2.0 to target both .NET Framework 
+& .NET Core. All Operations are asynchronous and support a method overload to pass
+a cancellation token.
+
+```csharp
+var person = await q.PopAsync();
+
+CancellationToken ct = new CancellationToken(false);
+var person = await q.PopAsync(ct);
+```
+
+During queue creation the library will perform an async operation to create the queue 
+if it doesn't exist. However if you need to create your queues in a non async manner
+e.g. in a DI Container/Bootstrapper you can use the non async `Build` method
 
 ```csharp
 var q = Builder
@@ -82,7 +115,7 @@ var q = Builder
     .Build();
 ```
 
-### Queue Operations
+### Basic Queue Operations
 
 You can clear all messages from a queue by calling
 
@@ -102,10 +135,10 @@ Queue's are tied to the object type you specify at creation.
 By default will serialize your objects to a Json String using NewtonSoft.Json.
 
 ```csharp
-var q = Builder
+var q = await Builder
     .CreateAQueueOf<Person>()
     .UsingStorageQueue("my-test-queue")
-    .Build(); 
+    .BuildAsync(); 
     
 var person = new Person("John");
 await q.PushAsync(person);
@@ -131,10 +164,10 @@ reappearing on the queue after it's visibility timeout.
 See: [Handling Poison Messages] for more info.
 
 ```csharp
-var q = Builder
+var q = await Builder
     .CreateAQueueOf<Person>()
     .UsingStorageQueue("my-test-queue")
-    .Build(); 
+    .BuildAsync(); 
     
 var person = await q.PopAsync();
 ``` 
@@ -157,37 +190,79 @@ IEnumerable<Person> peekedPeople = await q.PeekAsync(5);
 IEnumerable<Person> poppedPeople = await q.PopAsync(5);
 ```
 
+### Message Visibility
+
+You can provide a number of settings to override the various message visbility 
+and time to live settings.
+
+You can set a delay time before it appears to consumers on the queue
+
+```csharp
+var q = await Builder
+    .CreateAQueueOf<Person>()
+    .UsingStorageQueue("my-test-queue")
+    .ThatDelaysMessageVisibilityAfterEnqueuingFor(TimeSpan.FromMinutes(1))
+    .BuildAsync();
+``` 
+
+You can specify the duration that a message remains invisible for after it's 
+been dequeued, useful in combination with handling poison messages
+
+```csharp
+var q = await Builder
+    .CreateAQueueOf<Person>()
+    .UsingStorageQueue("my-test-queue")
+    .ThatKeepsMessagesInvisibleAfterDequeuingFor(TimeSpan.FromMinutes(1))
+    .BuildAsync();
+``` 
+
+You can specify the duration that message will remain alive on the queue if 
+no consumers dequeue them.
+
+```csharp
+var q = await Builder
+    .CreateAQueueOf<Person>()
+    .UsingStorageQueue("my-test-queue")
+    .ThatSetsAMessageTTLOf(TimeSpan.FromDays(1))
+    .BuildAsync();
+```
+
 ### Handling Poison Messages
 
-When a message is removed from a Storage Queue, the QueueWrapper will attempt to deserialize 
-it into the `<T>` you specified.
+When a message is removed from a Storage Queue, the wrapper will attempt 
+to deserialize it into the `<T>` you specified.
 
 It is possible that deserialization might fail for a number of reasons. e.g. 
 An unexpected/corrupted message may have been added to the queue which you cannot parse.
 
-You can specify what should happen when a poison message is detected. The default behavior 
-is to throw an exception if the method fails to deserialize. You can override that behavior
-by specifying that exceptions should be swallowed. In this case, the Pop/Peek method will 
-return null (or will remove the null result from an `IEnumerable<T>`)
-
+You can control how many times the library will attempt to dequeue and deserialize 
+for you before it considers the message poison. Once considered poisonly, you can optionally
+choose to route it to another queue for analysis/later processing.
 
 ```csharp
-var jobQueue = Builder
-    .CreateAQueueOf<Job>()
+var jobQueue = await Builder
+    .CreateAQueueOf<Person>()
     .UsingStorageQueue("my-test-queue")
-    .AndSwallowExceptionsOnPoisonMessages();
+    .ThatConsidersMessagesPoisonAfter(3)
+    .AndSendsPoisonMessagesTo("my-poison-queue")
+    .BuildAsync();
 ```
 
-By default, a message will be deleted after it has failed to be popped and returned 5 times.
+You can specify what should happen when a poison message is detected. The default behavior 
+is to throw an exception each time the message fails to deserialize. 
+You can override that behavior by specifying that exceptions should be swallowed. 
+In this case, the Pop/Peek method will return null (or will remove the null result 
+from an `IEnumerable<T>`).
 
-You can alternatively change the threshold and specify that poison messages are sent to 
-a poison queue for later processing analysis by  using the following option.
 
 ```csharp
-var jobQueue = Builder
+var jobQueue = await Builder
     .CreateAQueueOf<Job>()
     .UsingStorageQueue("my-test-queue")
-    .ThatSendsPoisonMessagesTo("my-poison-queue", afterAttempts: 3);
+    .ThatConsidersMessagesPoisonAfter(3)
+    .AndSendsPoisonMessagesTo("my-poison-queue")
+    .AndHandlesExceptionsOnPoisonMessagesBy(PoisonMessageBehavior.SwallowingExceptions)
+    .BuildAsync();
 ```
 
 
@@ -201,34 +276,42 @@ to deal with messages that have been serialized differently.
 
 To support this, Qluent allows your to pass your own custom binary or string serializer.
 
-```csharp
-var q = Builder
-    .CreateAQueueOf<Person>()
-    .ConnectedToAccount("UseDevelopmentStorage=true")
-    .UsingStorageQueue("my-test-queue")
-    .WithACustomBinarySerializer(new CustomBinarySerializer())
-    .Build();
-``` 
-
 To create a custom binary serializer, implement the interface `Qluent.Serialization.IBinaryMessageSerializer<T>`
-
+This will serialize/deserialize your message to a `byte[]` and push/pop it to the queue as bytes.
 ```csharp
 var q = Builder
     .CreateAQueueOf<Person>()
     .ConnectedToAccount("UseDevelopmentStorage=true")
     .UsingStorageQueue("my-test-queue")
-    .WithACustomStringSerializer(new CustomStringSerializer())
+    .WithACustomSerializer(new CustomBinarySerializer())
     .Build();
 ``` 
 
 To create a custom binary serializer, implement the interface `Qluent.Serialization.IStringMessageSerializer<T>`
+This will serialize/deserialize your message to a `string` and push/pop it to the queue as string content.
+
+```csharp
+var q = Builder
+    .CreateAQueueOf<Person>()
+    .ConnectedToAccount("UseDevelopmentStorage=true")
+    .UsingStorageQueue("my-test-queue")
+    .WithACustomSerializer(new CustomStringSerializer())
+    .Build();
+``` 
+
+### Logging
+
+The Qluent API utilizes NLog. Each internal class instantiates an instance of an an `NLog.Logger` using 
+the `GetCurrentClassLogger()` method. 
+
 
 
 ## Todo List
 
+- ~~Interface based Refactoring~~
 - Document calls properlty
-- Support Cancellation Tokens so that they can be passed through. 
+- ~~Support Cancellation Tokens so that they can be passed through.~~
 - Support Pop Receipts so that the consumer can decide how to handle messages
-- Write up the docs around message visibility when the above is done
+- ~~Write up the docs around message visibility when the above is done~~
 - .NET Core Tests
 - Include NLog/ILogger calls so that you can hook in your logging framework

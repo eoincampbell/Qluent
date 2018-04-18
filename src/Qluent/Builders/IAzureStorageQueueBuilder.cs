@@ -1,26 +1,25 @@
-﻿using Qluent.Queues;
+﻿using Qluent.Policies;
+using Qluent.Queues;
 using Qluent.Serialization;
+using System;
+using System.Threading.Tasks;
 
 namespace Qluent.Builders
 {
     public interface IAzureStorageQueueBuilder<T>
     {
         IAzureStorageQueue<T> Build();
-
+        Task<IAzureStorageQueue<T>> BuildAsync();
         IAzureStorageQueueBuilder<T> ConnectedToAccount(string connectionString);
-
-        IAzureStorageQueueBuilder<T> UsingStorageQueue(string queueName);
-
-        IAzureStorageQueueBuilder<T> WithACustomStringSerializer(IStringMessageSerializer<T> customSerlializer);
-        
-        IAzureStorageQueueBuilder<T> WithACustomBinarySerializer(IBinaryMessageSerializer<T> customSerlializer);      
-        
+        IAzureStorageQueueBuilder<T> UsingStorageQueue(string storageQueueName);
+        IAzureStorageQueueBuilder<T> WithACustomSerializer(IStringMessageSerializer<T> customSerlializer);
+        IAzureStorageQueueBuilder<T> WithACustomSerializer(IBinaryMessageSerializer<T> customSerlializer);
         IAzureStorageQueueBuilder<T> ThatIsTransactionScopeAware();
-
-        IAzureStorageQueueBuilder<T> ThatSendsPoisonMessagesTo(string poisonQueueName, int afterAttempts = 3);
-
-        IAzureStorageQueueBuilder<T> AndSwallowExceptionsOnPoisonMessages();
-
-        IAzureStorageQueueBuilder<T> WhereMessageVisibilityTimesOutAfter(int milliseconds = 30000);
+        IAzureStorageQueueBuilder<T> ThatConsidersMessagesPoisonAfter(int dequeueAttempts);
+        IAzureStorageQueueBuilder<T> AndSendsPoisonMessagesTo(string poisonQueueName);
+        IAzureStorageQueueBuilder<T> AndHandlesExceptionsOnPoisonMessagesBy(PoisonMessageBehavior behavior);
+        IAzureStorageQueueBuilder<T> ThatDelaysMessageVisibilityAfterEnqueuingFor(TimeSpan timespan);
+        IAzureStorageQueueBuilder<T> ThatKeepsMessagesInvisibleAfterDequeuingFor(TimeSpan timespan);
+        IAzureStorageQueueBuilder<T> ThatSetsAMessageTTLOf(TimeSpan timespan);
     }
 }

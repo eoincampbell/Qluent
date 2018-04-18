@@ -1,6 +1,8 @@
-﻿using Qluent.Serialization;
+﻿using Qluent.Policies;
+using Qluent.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 
@@ -11,32 +13,48 @@ namespace Qluent.Queues
         private bool _deferEnqueueUntilCommitted;
         private List<T> _deferredMessages;
 
-        internal TransactionalAzureStorageQueue(string connectionString, 
-            string queueName, 
-            BehaviorOnPoisonMessage behaviorOnPoisonMessage = BehaviorOnPoisonMessage.ThrowException, 
-            string poisonQueueName = null,
-            int considerPoisonAfterAttemptCount = 5,
-
-            IStringMessageSerializer<T> _customStringSerializer = null,
-            IBinaryMessageSerializer<T> _customBinarySerializer = null,
-
-            int visibilityTimeout = 30000) 
-                : base(connectionString, 
-                      queueName, 
-                      behaviorOnPoisonMessage, 
-                      poisonQueueName, 
-                      considerPoisonAfterAttemptCount,
-                      _customStringSerializer,
-                      _customBinarySerializer, 
-                      visibilityTimeout)
+        protected TransactionalAzureStorageQueue(
+            IAzureStorageQueueSettings settings,
+            IMessageTimeoutPolicy messageTimeoutPolicy,
+            IPoisonMessageBehaviorPolicy poisonMessageBehaviorPolicy = null,
+            IStringMessageSerializer<T> customStringSerializer = null,
+            IBinaryMessageSerializer<T> customBinarySerializer = null) 
+            : base(settings,
+                   messageTimeoutPolicy,
+                   poisonMessageBehaviorPolicy,
+                   customStringSerializer,
+                   customBinarySerializer)
         {
+
+        }
+
+        public new static async Task<TransactionalAzureStorageQueue<T>> CreateAsync(
+            IAzureStorageQueueSettings settings,
+            IMessageTimeoutPolicy messageTimeoutPolicy,
+            IPoisonMessageBehaviorPolicy poisonMessageBehaviorPolicy = null,
+            IStringMessageSerializer<T> customStringSerializer = null,
+            IBinaryMessageSerializer<T> customBinarySerializer = null)
+        {
+
+            var queue = new TransactionalAzureStorageQueue<T>(settings,
+                            messageTimeoutPolicy,
+                            poisonMessageBehaviorPolicy,
+                            customStringSerializer,
+                            customBinarySerializer);
+
+            await queue
+                .InstantiateQueues()
+                .ConfigureAwait(false);
+
+            return queue;
         }
 
         public async void Commit(Enlistment enlistment)
         {
             foreach (var message in _deferredMessages)
             {
-                await Enqueue(message);
+                await Enqueue(message, new CancellationToken())
+                    .ConfigureAwait(false);
             }
 
             enlistment.Done();
@@ -80,6 +98,12 @@ namespace Qluent.Queues
 
         public override async Task PushAsync(T message)
         {
+            await PushAsync(message, new CancellationToken())
+                .ConfigureAwait(false);
+        }
+
+        public override async Task PushAsync(T message, CancellationToken token)
+        {
             AttemptEnlistment();
             if (_deferEnqueueUntilCommitted)
             {
@@ -87,11 +111,18 @@ namespace Qluent.Queues
             }
             else
             {
-                await Enqueue(message);
+                await Enqueue(message, token)
+                    .ConfigureAwait(false);
             }
         }
 
         public override async Task PushAsync(IEnumerable<T> messages)
+        {
+            await PushAsync(messages, new CancellationToken())
+                .ConfigureAwait(false);
+        }
+
+        public override async Task PushAsync(IEnumerable<T> messages, CancellationToken token)
         {
             AttemptEnlistment();
             if (_deferEnqueueUntilCommitted)
@@ -102,7 +133,8 @@ namespace Qluent.Queues
             {
                 foreach (var message in messages)
                 {
-                    await Enqueue(message);
+                    await Enqueue(message, token)
+                        .ConfigureAwait(false);
                 }
             }
         }

@@ -10,7 +10,7 @@ using Qluent.NetFramework.Tests.Stubs;
 namespace Qluent.NetFramework.Tests
 {
     [TestFixture]
-    public class TransactionalAzureStorageQueueTests
+    public class TransactionalTest
     {
         [Test]
         public async Task Given_a_transactionscope_aware_queue_When_a_message_is_pushed_Then_it_should_only_be_added_to_the_queue_after_the_complete_commit_phase()

@@ -57,11 +57,14 @@
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MessageVisibilityTests.cs" />
+    <Compile Include="PoisonMessageTests.cs" />
+    <Compile Include="SerializationTests.cs" />
     <Compile Include="Serializers\CustomBinarySerializer.cs" />
     <Compile Include="Stubs\Job.cs" />
-    <Compile Include="TransactionalAzureStorageQueueTests.cs" />
+    <Compile Include="TransactionalTest.cs" />
     <Compile Include="BuilderTests.cs" />
-    <Compile Include="SimpleAzureStorageQueueTests.cs" />
+    <Compile Include="BasicOperations.cs" />
     <Compile Include="Serializers\CustomBase64Serializer.cs" />
     <Compile Include="Stubs\Person.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

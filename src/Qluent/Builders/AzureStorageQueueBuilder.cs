@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading.Tasks;
+using Qluent.Policies;
 using Qluent.Queues;
 using Qluent.Serialization;
 
@@ -6,54 +8,81 @@ namespace Qluent.Builders
 {
     internal class AzureStorageQueueBuilder<T> : IAzureStorageQueueBuilder<T>
     {
-        private string _connectionString = "UseDevelopmentStorage=true";
-        private string _queueName;
-        private string _poisonQueueName;
-
-        private int _considerMessagesPoisonAfterAttempts = 10;
-        private int _messageVisibilityTimeout = 30000;
-
-        private bool _swallowExceptionOnPoisonMessage;
-        private bool _transactionScopeAware;
+        private readonly IAzureStorageQueueSettings _settings;
+        private readonly IMessageTimeoutPolicy _messageTimeoutPolicy;
+        private readonly IPoisonMessageBehaviorPolicy _poisonMessageBehaviorPolicy;
 
         private IStringMessageSerializer<T> _customStringSerializer;
         private IBinaryMessageSerializer<T> _customBinarySerializer;
 
+        private bool _transactionScopeAware;
+
+        public AzureStorageQueueBuilder()
+        {
+            _settings = new AzureStorageQueueSettings();
+            _messageTimeoutPolicy = new MessageTimeoutPolicy();
+            _poisonMessageBehaviorPolicy = new PoisonMessageBehaviorPolicy();
+            _customStringSerializer = null;
+            _customBinarySerializer = null;
+            _transactionScopeAware = false;
+        }
+
         public IAzureStorageQueue<T> Build()
         {
-            var behavior = BehaviorOnPoisonMessage.ThrowException;
+            var queue = _transactionScopeAware
+                ? TransactionalAzureStorageQueue<T>.CreateAsync(_settings,
+                            _messageTimeoutPolicy,
+                            _poisonMessageBehaviorPolicy,
+                            _customStringSerializer,
+                            _customBinarySerializer).Result
+                : SimpleAzureStorageQueue<T>.CreateAsync(_settings,
+                            _messageTimeoutPolicy,
+                            _poisonMessageBehaviorPolicy,
+                            _customStringSerializer,
+                            _customBinarySerializer).Result;
 
-            if (_swallowExceptionOnPoisonMessage)
-            {
-                behavior = BehaviorOnPoisonMessage.SwallowException;
-            }
+            return queue;
+        }
 
-            return _transactionScopeAware
-                ? new TransactionalAzureStorageQueue<T>(_connectionString, _queueName, behavior, _poisonQueueName, _considerMessagesPoisonAfterAttempts,
-                    _customStringSerializer, _customBinarySerializer, _messageVisibilityTimeout)
-                : new SimpleAzureStorageQueue<T>(_connectionString, _queueName, behavior, _poisonQueueName, _considerMessagesPoisonAfterAttempts,
-                    _customStringSerializer, _customBinarySerializer, _messageVisibilityTimeout);
+        public async Task<IAzureStorageQueue<T>> BuildAsync()
+        {
+
+            var queue = _transactionScopeAware
+                ? await TransactionalAzureStorageQueue<T>.CreateAsync(_settings,
+                            _messageTimeoutPolicy,
+                            _poisonMessageBehaviorPolicy,
+                            _customStringSerializer,
+                            _customBinarySerializer)
+                            .ConfigureAwait(false)
+                : await SimpleAzureStorageQueue<T>.CreateAsync(_settings,
+                            _messageTimeoutPolicy,
+                            _poisonMessageBehaviorPolicy,
+                            _customStringSerializer,
+                            _customBinarySerializer)
+                            .ConfigureAwait(false);
+
+            return queue;
         }
 
         public IAzureStorageQueueBuilder<T> ConnectedToAccount(string connectionString)
         {
-            _connectionString = connectionString;
+            _settings.ConnectionString = connectionString;
             return this;
         }
 
-        public IAzureStorageQueueBuilder<T> UsingStorageQueue(string queueName)
+        public IAzureStorageQueueBuilder<T> UsingStorageQueue(string storageQueueName)
         {
-            _queueName = queueName;
+            _settings.StorageQueueName = storageQueueName;
             return this;
         }
 
-        public IAzureStorageQueueBuilder<T> WithACustomStringSerializer(IStringMessageSerializer<T> customSerlializer)
+        public IAzureStorageQueueBuilder<T> WithACustomSerializer(IStringMessageSerializer<T> customSerlializer)
         {
             _customStringSerializer = customSerlializer;
             return this;
         }
 
-        public IAzureStorageQueueBuilder<T> WithACustomBinarySerializer(IBinaryMessageSerializer<T> customSerlializer)
+        public IAzureStorageQueueBuilder<T> WithACustomSerializer(IBinaryMessageSerializer<T> customSerlializer)
         {
             _customBinarySerializer = customSerlializer;
             return this;
@@ -65,23 +94,41 @@ namespace Qluent.Builders
             return this;
         }
 
-        public IAzureStorageQueueBuilder<T> ThatSendsPoisonMessagesTo(string poisonQueueName, int afterAttempts = 3)
+        public IAzureStorageQueueBuilder<T> ThatConsidersMessagesPoisonAfter(int dequeueAttempts)
         {
-            _poisonQueueName = poisonQueueName;
-            _considerMessagesPoisonAfterAttempts = afterAttempts;
+            _poisonMessageBehaviorPolicy.PoisonMessageDequeueAttemptThreshold = dequeueAttempts;
             return this;
         }
 
-        public IAzureStorageQueueBuilder<T> AndSwallowExceptionsOnPoisonMessages()
+        public IAzureStorageQueueBuilder<T> AndSendsPoisonMessagesTo(string poisonQueueName)
         {
-            _swallowExceptionOnPoisonMessage = true;
+            _poisonMessageBehaviorPolicy.PoisonMessageStorageQueueName = poisonQueueName;
             return this;
         }
 
-        public IAzureStorageQueueBuilder<T> WhereMessageVisibilityTimesOutAfter(int milliseconds)
+        public IAzureStorageQueueBuilder<T> AndHandlesExceptionsOnPoisonMessagesBy(PoisonMessageBehavior behavior)
         {
-            _messageVisibilityTimeout = milliseconds;
+            _poisonMessageBehaviorPolicy.PoisonMessageBehavior = behavior;
             return this;
+        }
+
+        public IAzureStorageQueueBuilder<T> ThatDelaysMessageVisibilityAfterEnqueuingFor(TimeSpan timespan)
+        {
+            _messageTimeoutPolicy.InitialVisibilityDelay = timespan;
+            return this;
+        }
+
+        public IAzureStorageQueueBuilder<T> ThatKeepsMessagesInvisibleAfterDequeuingFor(TimeSpan timespan)
+        {
+            _messageTimeoutPolicy.VisibilityTimeout = timespan;
+            return this;
+        }
+
+        public IAzureStorageQueueBuilder<T> ThatSetsAMessageTTLOf(TimeSpan timespan)
+        {
+            _messageTimeoutPolicy.TimeToLive = timespan;
+            return this;
+
         }
     }
 }

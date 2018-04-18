@@ -1,247 +1,339 @@
 ﻿using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
+using Qluent.Policies;
 using Qluent.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Qluent.Queues
 {
-    public enum BehaviorOnPoisonMessage
-    {
-        ThrowException,
-        SwallowException
-    }
-
     internal class SimpleAzureStorageQueue<T> : IAzureStorageQueue<T>
     {
-        private readonly CloudQueue _cloudQueue;
-        private readonly CloudQueue _poisonQueue;
+        private CloudQueue _cloudQueue;
+        private CloudQueue _poisonQueue;
 
-
+        private readonly IAzureStorageQueueSettings _settings;
+        private readonly IMessageTimeoutPolicy _messageTimeoutPolicy;
         private readonly IMessageSerializer<T, string> _defaultSerializer = new DefaultMessageSerializer<T>();
-
         private readonly IStringMessageSerializer<T> _customStringSerializer;
         private readonly IBinaryMessageSerializer<T> _customBinarySerializer;
+        private readonly IPoisonMessageBehaviorPolicy _poisonMessageBehaviorPolicy;
 
-        private readonly BehaviorOnPoisonMessage _behaviorOnPoisonMessage;
-        private readonly int _considerPoisonAfterDequeueAttempts;
-        private readonly int _visibilityTimeout;
-
-
-        internal SimpleAzureStorageQueue(
-            string connectionString, 
-            string queueName,
-
-            BehaviorOnPoisonMessage behaviorOnPoisonMessage = BehaviorOnPoisonMessage.ThrowException,
-            string poisonQueueName = null,
-            int considerPoisonAfterAttemptCount = 5,
-
+        protected SimpleAzureStorageQueue(
+            IAzureStorageQueueSettings settings,
+            IMessageTimeoutPolicy messageTimeoutPolicy,
+            IPoisonMessageBehaviorPolicy poisonMessageBehaviorPolicy = null,
             IStringMessageSerializer<T> customStringSerializer = null,
-            IBinaryMessageSerializer<T> customBinarySerializer = null,
-
-            int visibilityTimeout = 30000)
-        { 
-            var cloudStorageAccount = CloudStorageAccount.Parse(connectionString);
-            var cloudQueueClient = cloudStorageAccount.CreateCloudQueueClient();
-
-            _cloudQueue = cloudQueueClient.GetQueueReference(queueName);
-            _cloudQueue.CreateIfNotExistsAsync();
-
-            if (!string.IsNullOrWhiteSpace(poisonQueueName))
-            {
-                _poisonQueue = cloudQueueClient.GetQueueReference(poisonQueueName);
-                _poisonQueue.CreateIfNotExistsAsync();
-            }
-
-            _considerPoisonAfterDequeueAttempts = considerPoisonAfterAttemptCount;
-
+            IBinaryMessageSerializer<T> customBinarySerializer = null)
+        {
+            _settings = settings;
+            _messageTimeoutPolicy = messageTimeoutPolicy;
+            _poisonMessageBehaviorPolicy = poisonMessageBehaviorPolicy;
             _customStringSerializer = customStringSerializer;
             _customBinarySerializer = customBinarySerializer;
+        }
 
-            _behaviorOnPoisonMessage = behaviorOnPoisonMessage;
+        public static async Task<SimpleAzureStorageQueue<T>> CreateAsync(
+            IAzureStorageQueueSettings settings, 
+            IMessageTimeoutPolicy messageTimeoutPolicy,
+            IPoisonMessageBehaviorPolicy poisonMessageBehaviorPolicy = null,
+            IStringMessageSerializer<T> customStringSerializer = null,
+            IBinaryMessageSerializer<T> customBinarySerializer = null)
+        {
 
-            _visibilityTimeout = visibilityTimeout;
+            var queue = new SimpleAzureStorageQueue<T>(settings,
+                            messageTimeoutPolicy,
+                            poisonMessageBehaviorPolicy,
+                            customStringSerializer,
+                            customBinarySerializer);
 
+            await queue
+                .InstantiateQueues()
+                .ConfigureAwait(false);
+
+            return queue;
+        }
+
+        protected async Task InstantiateQueues()
+        {
+            var cloudStorageAccount = CloudStorageAccount.Parse(_settings.ConnectionString);
+            var cloudQueueClient = cloudStorageAccount.CreateCloudQueueClient();
+
+            _cloudQueue = cloudQueueClient.GetQueueReference(_settings.StorageQueueName);
+
+            await _cloudQueue
+                .CreateIfNotExistsAsync()
+                .ConfigureAwait(false);
+            
+            if(!string.IsNullOrWhiteSpace(_poisonMessageBehaviorPolicy?.PoisonMessageStorageQueueName))
+            {
+                _poisonQueue = cloudQueueClient.GetQueueReference(_poisonMessageBehaviorPolicy.PoisonMessageStorageQueueName);
+
+                await _poisonQueue
+                    .CreateIfNotExistsAsync()
+                    .ConfigureAwait(false);
+            }
         }
 
         public virtual async Task PushAsync(T message)
         {
-            await Enqueue(message);
+            await PushAsync(message, new CancellationToken())
+                .ConfigureAwait(false);
+        }
+
+        public virtual async Task PushAsync(T message, CancellationToken token)
+        {
+            await Enqueue(message, token)
+                .ConfigureAwait(false);
         }
 
         public virtual async Task PushAsync(IEnumerable<T> messages)
         {
-            foreach (var message in messages)
-            {
-                await Enqueue(message);
-            }
+            await PushAsync(messages, new CancellationToken())
+                .ConfigureAwait(false);
         }
 
+        public virtual async Task PushAsync(IEnumerable<T> messages, CancellationToken token)
+        {
+            foreach (var message in messages)
+            {
+                await Enqueue(message, token)
+                    .ConfigureAwait(false);
+            }
+        }
         public async Task<T> PeekAsync()
         {
-            var qMsg = await _cloudQueue.PeekMessageAsync();
+            return await PeekAsync(new CancellationToken())
+                .ConfigureAwait(false);
+        }
 
-            var deserializedMessage = await FromCloudQueueMessage(qMsg);
+        public async Task<T> PeekAsync(CancellationToken token)
+        {
+            var qMsg = await _cloudQueue
+                .PeekMessageAsync(null, null, token)
+                .ConfigureAwait(false);
 
-            return deserializedMessage;
+            var obj = await FromCloudQueueMessage(qMsg, token)
+                .ConfigureAwait(false);
+
+            return obj;
         }
 
         public async Task<IEnumerable<T>> PeekAsync(int messageCount)
         {
-            var qMsgs = (await _cloudQueue.PeekMessagesAsync(messageCount)).ToList();
+            return await PeekAsync(messageCount, new CancellationToken())
+                .ConfigureAwait(false);
+        }
 
-            var objects = new List<T>();
+        public async Task<IEnumerable<T>> PeekAsync(int messageCount, CancellationToken token)
+        {
+            var qMsgs = await _cloudQueue
+                .PeekMessagesAsync(messageCount)
+                .ConfigureAwait(false);
+
+            var objs = new List<T>();
 
             foreach (var qMsg in qMsgs)
             {
-                var deserializedMessage = await FromCloudQueueMessage(qMsg);
+                var obj = await FromCloudQueueMessage(qMsg, token)
+                    .ConfigureAwait(false);
 
-                if (deserializedMessage != null)
+                if (obj != null)
                 {
-                    objects.Add(deserializedMessage);
+                    objs.Add(obj);
                 }
             }
 
-            return objects;
+            return objs;
         }
 
         public async Task<T> PopAsync()
         {
-            var qMsg = await _cloudQueue.GetMessageAsync(TimeSpan.FromMilliseconds(_visibilityTimeout), null, null);
+            return await PopAsync(new CancellationToken())
+                .ConfigureAwait(false);
+        }
+
+        public async Task<T> PopAsync(CancellationToken token)
+        {
+            var qMsg = await _cloudQueue
+                .GetMessageAsync(_messageTimeoutPolicy.VisibilityTimeout, null, null, token)
+                .ConfigureAwait(false);
 
             if (qMsg == null)
             {
                 return default(T);
             }
 
-            var deserializedMessage = await FromCloudQueueMessage(qMsg);
+            var obj = await FromCloudQueueMessage(qMsg, token)
+                .ConfigureAwait(false);
 
-            if (deserializedMessage != null)
+            if (obj != null)
             {
-                await _cloudQueue.DeleteMessageAsync(qMsg);
+                await _cloudQueue
+                    .DeleteMessageAsync(qMsg.Id, qMsg.PopReceipt, null, null, token)
+                    .ConfigureAwait(false);
             }
 
-            return deserializedMessage;
+            return obj;
         }
 
         public async Task<IEnumerable<T>> PopAsync(int messageCount)
         {
-            var qMsgs = (await _cloudQueue.GetMessagesAsync(messageCount, TimeSpan.FromMilliseconds(_visibilityTimeout), null, null)).ToList();
+            return await PopAsync(messageCount, new CancellationToken())
+                .ConfigureAwait(false);
+        }
 
-            var objects = new List<T>();
+        public async Task<IEnumerable<T>> PopAsync(int messageCount, CancellationToken token)
+        {
+            var qMsgs = await _cloudQueue
+                .GetMessagesAsync(messageCount, _messageTimeoutPolicy.VisibilityTimeout, null, null, token)
+                .ConfigureAwait(false);
+
+
+            var objs = new List<T>();
             var qMsgsToDelete = new List<CloudQueueMessage>();
 
             foreach (var qMsg in qMsgs)
             {
-                var deserializedMessage = await FromCloudQueueMessage(qMsg);
+                var obj = await FromCloudQueueMessage(qMsg, token)
+                    .ConfigureAwait(false);
 
-                if (deserializedMessage != null)
+                if (obj != null)
                 {
-                    objects.Add(deserializedMessage);
+                    objs.Add(obj);
                     qMsgsToDelete.Add(qMsg);
                 }
             }
 
             foreach (var qMsg in qMsgsToDelete)
             {
-                await _cloudQueue.DeleteMessageAsync(qMsg);
+                await _cloudQueue
+                    .DeleteMessageAsync(qMsg.Id, qMsg.PopReceipt, null, null, token)
+                    .ConfigureAwait(false);
             }
-            return objects;
+            return objs;
         }
 
         public async Task PurgeAsync()
         {
-            await _cloudQueue.ClearAsync();
+            await PurgeAsync(new CancellationToken())
+                .ConfigureAwait(false);
+        }
+
+        public async Task PurgeAsync(CancellationToken token)
+        {
+            await _cloudQueue
+                .ClearAsync(null, null, token)
+                .ConfigureAwait(false);
         }
 
         public async Task<int?> CountAsync()
         {
-            await _cloudQueue.FetchAttributesAsync();
+            return await CountAsync(new CancellationToken())
+                .ConfigureAwait(false);
+        }
+
+        public async Task<int?> CountAsync(CancellationToken token)
+        {
+
+            await _cloudQueue
+            .FetchAttributesAsync(null, null, token)
+            .ConfigureAwait(false);
+
             return _cloudQueue.ApproximateMessageCount;
         }
 
         #region Implements IAzureStorageQueue
 
-        protected async Task Enqueue(T entity)
+        protected async Task Enqueue(T entity, CancellationToken token)
         {
             var qMsg = ToCloudQueueMessage(entity);
 
-            await _cloudQueue.AddMessageAsync(qMsg);
+            await _cloudQueue
+                .AddMessageAsync(qMsg, _messageTimeoutPolicy.TimeToLive, _messageTimeoutPolicy.InitialVisibilityDelay, null, null, token)
+                .ConfigureAwait(false);
+
         }
 
+       
+        private CloudQueueMessage ToBinaryCloudQueueMessage(T entity)
+        {
+            var serializedMessage = _customBinarySerializer.Serialize(entity);
+            return ToBinaryCloudQueueMessage(serializedMessage);
+        }
+
+        private CloudQueueMessage ToBinaryCloudQueueMessage(byte [] bytes)
+        {
+            var qMsg = new CloudQueueMessage(string.Empty);
+            qMsg.SetMessageContent(bytes);
+            return qMsg;
+        }
+
+        private CloudQueueMessage ToStringCloudQueueMessage(T entity)
+        {
+            var serializedMessage = (_customStringSerializer ?? _defaultSerializer).Serialize(entity);
+            return ToStringCloudQueueMessage(serializedMessage);
+        }
+
+        private CloudQueueMessage ToStringCloudQueueMessage(string message)
+        {
+            return new CloudQueueMessage(message);
+        }
         private CloudQueueMessage ToCloudQueueMessage(T entity)
         {
-            CloudQueueMessage qMsg = null;
-            if (_customBinarySerializer != null)
-            {
-                byte[] serializedMessage = _customBinarySerializer.Serialize(entity);
-                qMsg = new CloudQueueMessage("");
-                qMsg.SetMessageContent(serializedMessage);
-            }
-            else
-            {
-                var serializedMessage = (_customStringSerializer ?? _defaultSerializer).Serialize(entity);
-                qMsg = new CloudQueueMessage(serializedMessage);
-            }
-
-            return qMsg;
+            return _customBinarySerializer != null
+                ? ToBinaryCloudQueueMessage(entity)
+                : ToStringCloudQueueMessage(entity);
         }
 
         private CloudQueueMessage ToCloudQueueMessage(CloudQueueMessage poisonMessage)
         {
-            CloudQueueMessage qMsg = null;
-            if (_customBinarySerializer != null)
-            {
-                qMsg = new CloudQueueMessage(string.Empty);
-                qMsg.SetMessageContent(poisonMessage.AsBytes);
-            }
-            else
-            {
-                qMsg = new CloudQueueMessage(poisonMessage.AsString);
-            }
-
-            return qMsg;
+            return _customBinarySerializer != null
+                ? ToBinaryCloudQueueMessage(poisonMessage.AsBytes)
+                : ToStringCloudQueueMessage(poisonMessage.AsString);
         }
 
-        private async Task<T> FromCloudQueueMessage(CloudQueueMessage qMsg)
+        private async Task<T> FromCloudQueueMessage(CloudQueueMessage qMsg, CancellationToken token)
         {
             try
             {
-                if (_customBinarySerializer != null)
-                {
-                    return _customBinarySerializer.Deserialize(qMsg.AsBytes);
-                }
-                else
-                {
-                    return (_customStringSerializer ?? _defaultSerializer).Deserialize(qMsg.AsString);
-                }
+                return _customBinarySerializer != null
+                    ? _customBinarySerializer.Deserialize(qMsg.AsBytes)
+                    : (_customStringSerializer ?? _defaultSerializer).Deserialize(qMsg.AsString);
             }
             catch
             {
                 try
                 {
-                    if (_poisonQueue != null && _considerPoisonAfterDequeueAttempts <= qMsg.DequeueCount)
+                    if (_poisonQueue != null && 
+                        _poisonMessageBehaviorPolicy.PoisonMessageDequeueAttemptThreshold <= qMsg.DequeueCount)
                     {
                         var poisonMessage = ToCloudQueueMessage(qMsg);
 
-                        await _poisonQueue.AddMessageAsync(qMsg);
+                        await _poisonQueue
+                             .AddMessageAsync(qMsg, null, null, null, null, token)
+                            .ConfigureAwait(false);
                     }
-                    if (_considerPoisonAfterDequeueAttempts <= qMsg.DequeueCount)
+                    if (_poisonMessageBehaviorPolicy.PoisonMessageDequeueAttemptThreshold <= qMsg.DequeueCount)
                     {
-                        await _cloudQueue.DeleteMessageAsync(qMsg);
+                        await _cloudQueue
+                            .DeleteMessageAsync(qMsg.Id, qMsg.PopReceipt, null, null, token)
+                            .ConfigureAwait(false);
                     }
                 }
                 catch
                 {
-                    // ignored
+                    //Swallow exceptions relating to Poison Message reenquement for now.
                 }
 
-                if (_behaviorOnPoisonMessage == BehaviorOnPoisonMessage.SwallowException)
+                if (_poisonMessageBehaviorPolicy.PoisonMessageBehavior == PoisonMessageBehavior.SwallowingExceptions)
                 {
                     return default(T);
                 }
+
                 throw;
             }
 
