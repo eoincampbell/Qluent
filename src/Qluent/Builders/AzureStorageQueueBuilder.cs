@@ -1,11 +1,12 @@
-﻿using System;
-using System.Threading.Tasks;
-using Qluent.Policies;
-using Qluent.Queues;
-using Qluent.Serialization;
-
-namespace Qluent.Builders
+﻿namespace Qluent.Builders
 {
+    using System;
+    using System.Threading.Tasks;
+    using Qluent.Policies;
+    using Qluent.Policies.PoisonMessageBehavior;
+    using Qluent.Queues;
+    using Qluent.Serialization;
+
     internal class AzureStorageQueueBuilder<T> : IAzureStorageQueueBuilder<T>
     {
         private readonly IAzureStorageQueueSettings _settings;
@@ -17,6 +18,7 @@ namespace Qluent.Builders
 
         private bool _transactionScopeAware;
 
+        
         public AzureStorageQueueBuilder()
         {
             _settings = new AzureStorageQueueSettings();
@@ -35,7 +37,7 @@ namespace Qluent.Builders
                             _poisonMessageBehaviorPolicy,
                             _customStringSerializer,
                             _customBinarySerializer).Result
-                : SimpleAzureStorageQueue<T>.CreateAsync(_settings,
+                : AzureStorageQueue<T>.CreateAsync(_settings,
                             _messageTimeoutPolicy,
                             _poisonMessageBehaviorPolicy,
                             _customStringSerializer,
@@ -54,7 +56,7 @@ namespace Qluent.Builders
                             _customStringSerializer,
                             _customBinarySerializer)
                             .ConfigureAwait(false)
-                : await SimpleAzureStorageQueue<T>.CreateAsync(_settings,
+                : await AzureStorageQueue<T>.CreateAsync(_settings,
                             _messageTimeoutPolicy,
                             _poisonMessageBehaviorPolicy,
                             _customStringSerializer,
@@ -100,13 +102,13 @@ namespace Qluent.Builders
             return this;
         }
 
-        public IAzureStorageQueueBuilder<T> AndSendsPoisonMessagesTo(string poisonQueueName)
+       public IAzureStorageQueueBuilder<T> AndSendsPoisonMessagesTo(string poisonQueueName)
         {
             _poisonMessageBehaviorPolicy.PoisonMessageStorageQueueName = poisonQueueName;
             return this;
         }
 
-        public IAzureStorageQueueBuilder<T> AndHandlesExceptionsOnPoisonMessagesBy(PoisonMessageBehavior behavior)
+        public IAzureStorageQueueBuilder<T> AndHandlesExceptionsOnPoisonMessages(By behavior)
         {
             _poisonMessageBehaviorPolicy.PoisonMessageBehavior = behavior;
             return this;

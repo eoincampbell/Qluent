@@ -57,6 +57,7 @@
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GetAndDeleteTests.cs" />
     <Compile Include="MessageVisibilityTests.cs" />
     <Compile Include="PoisonMessageTests.cs" />
     <Compile Include="SerializationTests.cs" />

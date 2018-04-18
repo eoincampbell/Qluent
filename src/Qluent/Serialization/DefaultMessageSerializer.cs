@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
-
-namespace Qluent.Serialization
+﻿namespace Qluent.Serialization
 {
-    public class DefaultMessageSerializer<T> : IStringMessageSerializer<T>
+    using Newtonsoft.Json;
+
+    internal class DefaultMessageSerializer<T> : IStringMessageSerializer<T>
     {
         public T Deserialize(string message)
         {

@@ -1,12 +1,27 @@
 # Qluent
 
+ - [What is this?]
+ - [Why do I need this?]
+ - [What is this not?]
+ - [How do I use it?]
+   - [Basic Operations]
+   - [Sending Messages]
+   - [Receiving Messages]
+   - [Receiving Messages & Controlling Deletion]
+ - [Advanced Features]
+   - [Message Visibility]
+   - [Handling Poison Messages]
+   - [Customising Serialization]
+   - [Asynchronous Model]
+   - [Logging]
+
+---
+
 ## What is this?
 
-Qluent is a library that provides a ***very simple*** Fluent Async API and wrapper 
-class around the Microsoft Azure Storage libraries to allow you to interact 
-with storage queues using strongly typed objects.
-
-It lets you interact with a queue like this.
+Qluent provides a ***very simple*** Fluent API and wrapper around the Microsoft 
+Azure Storage SDK, allowing you to interact with storage queues using 
+strongly typed objects like this.
 
 ```csharp
 var q = await Builder
@@ -19,7 +34,7 @@ var person = await q.PopAsync();
 
 ## Why do I need this?
 
-I find there's a lot of ceremony involved when working with an Azure Storage Queues. 
+There's a lot of ceremony involved when using the SDK for Azure Storage Queues. 
 Create an account, create a client, create a queue reference, make sure it exists,
 object serialization/deserialization etc...
 
@@ -39,11 +54,6 @@ var deserializedPerson = JsonConvert.Deserialize<Person>(result.AsString);
 queue.DeleteMessage(result);
 ```
 
-This gets even more convoluted when you want to do something a little more complex 
-with visibility timeouts, handling poison messages, etc. I wanted a way to simplify 
-it.
-
-
 I'm also not a fan of the architectural decision in the SDK to leave settings like
 message visbility up to the developer to decide on at the call site. If you're 
 going to create your queues and access them via a DI framework, I'd prefer to 
@@ -52,25 +62,20 @@ centralize/standardize these settings at queue creation.
 
 ## What is this not?
 
-This API is designed to be simple. It provide you an easy way to 
-create a reference to a queue, which you can use to push and pop messages.
-It also provides some simple approaches for common queuing scenarios, such as 
-handling serialization and dealing with poison messages. That's it.
+This is not an Enterprise Service Bus. It is a simple wrapper around Azure Storage 
+Queues to make working with them a little easier.
 
-Azure Storage Queues are meant to be used for simple situations. Basic first 
-in first out message passing so that you can distribute load in your application.
+There are lots of complicated things you may find yourself doing in a 
+distributed environment. Complex Retry Policies; complicated routing paths; 
+Pub/Sub models involving topics and queues; the list goes on.
 
-If you find yourself needing to do something more complex, then perhaps you should 
+If you find yourself needing to do something complex like this, then perhaps you should 
 be looking at a different technology stack (Azure Service Bus, Event Hubs, Event Grid, 
 Kafka, NService Bus, Mulesoft etc...)
 
-
 ## How do I use it?
 
-### Connecting
-
-If you don't specify a storage account, the builder will generate a queue connected 
-to development storage by default.
+By default the builder will create a queue connected to development storage.
 
 ```csharp
 var q = await Builder
@@ -79,7 +84,7 @@ var q = await Builder
     .BuildAsync();
 ```
 
-Alternatively, you can explicitly provide a connection string to a storage account
+You can explicitly provide a connection string to a specific storage account.
 
 ```csharp
 var q = await Builder
@@ -89,50 +94,24 @@ var q = await Builder
     .BuildAsync();
 ```
 
+### Basic Operations
 
-### Async & Await
-
-The library is built against the .NET Standard 2.0 to target both .NET Framework 
-& .NET Core. All Operations are asynchronous and support a method overload to pass
-a cancellation token.
-
-```csharp
-var person = await q.PopAsync();
-
-CancellationToken ct = new CancellationToken(false);
-var person = await q.PopAsync(ct);
-```
-
-During queue creation the library will perform an async operation to create the queue 
-if it doesn't exist. However if you need to create your queues in a non async manner
-e.g. in a DI Container/Bootstrapper you can use the non async `Build` method
-
-```csharp
-var q = Builder
-    .CreateAQueueOf<Person>()
-    .ConnectedToAccount("UseDevelopmentStorage=true")
-    .UsingStorageQueue("my-test-queue")
-    .Build();
-```
-
-### Basic Queue Operations
-
-You can clear all messages from a queue by calling
+You can clear all messages from a queue.
 
 ```csharp
 await q.PurgeAsync();
 ```
 
-You can also check the approximate message count on a queue by calling 
+You can check the approximate message count on a queue.
 
 ```csharp
 var count = await q.CountAsync()
 ```
 
-### Adding Messages
+### Sending Messages
 
-Queue's are tied to the object type you specify at creation.  
-By default will serialize your objects to a Json String using NewtonSoft.Json.
+Queues are created for a specific type. You can push an object of 
+that type directly to the queue.
 
 ```csharp
 var q = await Builder
@@ -144,22 +123,22 @@ var person = new Person("John");
 await q.PushAsync(person);
 ``` 
 
-You can also push an entire IEnumerable of messages onto the queue
+You can also push an `IEnumerable<T>` of messages to the queue.
 
 ```csharp
 List<Person> people = new List<Person>();
 await q.PushAsync(people);
 ```
 
-### Receiving a Message
+### Receiving Messages
 
-To take a message off a queue you can simply Pop the message. 
-This will Dequeue a message, attempt to deserialize it and if deserialization succeeds
-remove it from the queue.
+You can directly Pop an object off the queue. This will dequeue the 
+`CloudQueueMessage`, attempt to deserialize it and if deserialization succeeds
+remove it from the queue and return it to you.
 
 If deserialization fails, the default behavior is to throw an exception. 
-This will result in the message's dequeue count increasing, and it being 
-reappearing on the queue after it's visibility timeout.
+This will result in the message's dequeue count increasing, and it
+reappearing on the queue after it's visibility timeout expires.
 
 See: [Handling Poison Messages] for more info.
 
@@ -172,17 +151,13 @@ var q = await Builder
 var person = await q.PopAsync();
 ``` 
 
-If you don't want to remove the object from the queue, you can peek at it instead
+If you don't want to remove the object from the queue, you can peek at it instead.
 
 ```csharp
 var person = await q.PeekAsync();
 ``` 
 
-
-### Receiving multiple Messages
-
-You can also Peek or Pop multiple messages at a time by passing a message count to 
-either the method
+You can also Peek or Pop multiple messages at a time by passing a message count.
 
 ```csharp
 IEnumerable<Person> peekedPeople = await q.PeekAsync(5);
@@ -190,12 +165,46 @@ IEnumerable<Person> peekedPeople = await q.PeekAsync(5);
 IEnumerable<Person> poppedPeople = await q.PopAsync(5);
 ```
 
+### Receiving Messages & Controlling Deletion
+
+The Azure SDK supports a two phase dequeue process. First, the message is 
+received from the queue. Second, the message is deleted from the queue. 
+This allows a consumer to attempt processing in between these two steps, 
+and if processing fails, the client can abort the operation and the message 
+will appear on the queue again after it's visibilty timeout expires.
+
+The previous `PopAsync` methods perform both Get & Delete operations in one.
+
+If more control is required, by the consumer, Qluent also provides:
+ - `GetAsync`, which returns a `Message<T>` wrapper object including the underlying message Id & PopReceipt
+ - `DeleteAsync`, which accepts a `Message<T>`
+
+```csharp
+var q = await Builder
+    .CreateAQueueOf<Person>()
+    .UsingStorageQueue("my-test-queue")
+    .BuildAsync(); 
+
+var wrappedPerson = await q.GetAsync();
+
+try
+{    
+    //attempt to process wrappedPerson.Value;
+    await q.DeleteAsync(wrappedPerson);
+}
+catch(Exception ex){ ... }
+```
+
+---
+
+## Advanced Features
+
 ### Message Visibility
 
 You can provide a number of settings to override the various message visbility 
 and time to live settings.
 
-You can set a delay time before it appears to consumers on the queue
+You can set a delay time before the message appears to consumers on the queue.
 
 ```csharp
 var q = await Builder
@@ -206,7 +215,7 @@ var q = await Builder
 ``` 
 
 You can specify the duration that a message remains invisible for after it's 
-been dequeued, useful in combination with handling poison messages
+been dequeued, useful in combination with handling poison messages.
 
 ```csharp
 var q = await Builder
@@ -261,14 +270,42 @@ var jobQueue = await Builder
     .UsingStorageQueue("my-test-queue")
     .ThatConsidersMessagesPoisonAfter(3)
     .AndSendsPoisonMessagesTo("my-poison-queue")
-    .AndHandlesExceptionsOnPoisonMessagesBy(PoisonMessageBehavior.SwallowingExceptions)
+    .AndHandlesExceptionsOnPoisonMessages(By.SwallowingExceptions)
     .BuildAsync();
 ```
 
+### Asynchronous Model
 
-### Customised Deserialization
+The library is built against the .NET Standard 2.0 to target both .NET Framework 
+& .NET Core. All Operations are asynchronous and support a method overload to pass
+a cancellation token.
 
-By default Qluent will serialize your entities to Json Strings using NewtonSoft.Json.
+```csharp
+var person = await q.PopAsync();
+
+CancellationToken ct = new CancellationToken(false);
+var person = await q.PopAsync(ct);
+```
+
+Within the library all asynchronous calls are postpended with a call to `.ConfigureAwait(false)`.
+
+During queue creation the library will perform an async operation to create the queue 
+if it doesn't exist. Therefore the builder (and previous examples) provide an awaitable
+`BuildAsync()` method. However if you need to create your queues in a non async manner
+e.g. in a DI Container/Bootstrapper you can use the non async `Build` method.
+
+```csharp
+var q = Builder
+    .CreateAQueueOf<Person>()
+    .ConnectedToAccount("UseDevelopmentStorage=true")
+    .UsingStorageQueue("my-test-queue")
+    .Build();
+```
+
+### Customising Serialization
+
+By default Qluent will serialize your entities to Json Strings using 
+[Json.NET](https://www.newtonsoft.com/json).
 Serialization is performed using the default `JsonConvert` utility.
 
 For scenarios, where your client does not control both ends of the queue, you may have 
@@ -301,17 +338,22 @@ var q = Builder
 
 ### Logging
 
-The Qluent API utilizes NLog. Each internal class instantiates an instance of an an `NLog.Logger` using 
-the `GetCurrentClassLogger()` method. 
+//Todo
 
 
+### 2 phase commit using TransactionScopes
+
+//Todo
+
+---
 
 ## Todo List
 
 - ~~Interface based Refactoring~~
-- Document calls properlty
+- ~~Document calls properly~~
 - ~~Support Cancellation Tokens so that they can be passed through.~~
-- Support Pop Receipts so that the consumer can decide how to handle messages
+- ~~Support Pop Receipts so that the consumer can decide how to handle messages~~
 - ~~Write up the docs around message visibility when the above is done~~
-- .NET Core Tests
+- ~~.NET Core Tests~~
+- Fix the TransactionScope stuff and document it.
 - Include NLog/ILogger calls so that you can hook in your logging framework

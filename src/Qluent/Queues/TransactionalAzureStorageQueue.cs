@@ -1,14 +1,14 @@
-﻿using Qluent.Policies;
-using Qluent.Serialization;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Transactions;
-
-namespace Qluent.Queues
+﻿namespace Qluent.Queues
 {
-    internal class TransactionalAzureStorageQueue<T> : SimpleAzureStorageQueue<T>, IEnlistmentNotification
+    using Qluent.Policies;
+    using Qluent.Serialization;
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using System.Transactions;
+
+    internal class TransactionalAzureStorageQueue<T> : AzureStorageQueue<T>, IEnlistmentNotification
     {
         private bool _deferEnqueueUntilCommitted;
         private List<T> _deferredMessages;

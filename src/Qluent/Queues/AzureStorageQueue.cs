@@ -1,16 +1,15 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Queue;
-using Qluent.Policies;
-using Qluent.Serialization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Qluent.Queues
+﻿namespace Qluent.Queues
 {
-    internal class SimpleAzureStorageQueue<T> : IAzureStorageQueue<T>
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Queue;
+    using Qluent.Policies;
+    using Qluent.Policies.PoisonMessageBehavior;
+    using Qluent.Serialization;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+
+    internal class AzureStorageQueue<T> : IAzureStorageQueue<T>
     {
         private CloudQueue _cloudQueue;
         private CloudQueue _poisonQueue;
@@ -22,7 +21,7 @@ namespace Qluent.Queues
         private readonly IBinaryMessageSerializer<T> _customBinarySerializer;
         private readonly IPoisonMessageBehaviorPolicy _poisonMessageBehaviorPolicy;
 
-        protected SimpleAzureStorageQueue(
+        protected AzureStorageQueue(
             IAzureStorageQueueSettings settings,
             IMessageTimeoutPolicy messageTimeoutPolicy,
             IPoisonMessageBehaviorPolicy poisonMessageBehaviorPolicy = null,
@@ -36,7 +35,7 @@ namespace Qluent.Queues
             _customBinarySerializer = customBinarySerializer;
         }
 
-        public static async Task<SimpleAzureStorageQueue<T>> CreateAsync(
+        public static async Task<AzureStorageQueue<T>> CreateAsync(
             IAzureStorageQueueSettings settings, 
             IMessageTimeoutPolicy messageTimeoutPolicy,
             IPoisonMessageBehaviorPolicy poisonMessageBehaviorPolicy = null,
@@ -44,7 +43,7 @@ namespace Qluent.Queues
             IBinaryMessageSerializer<T> customBinarySerializer = null)
         {
 
-            var queue = new SimpleAzureStorageQueue<T>(settings,
+            var queue = new AzureStorageQueue<T>(settings,
                             messageTimeoutPolicy,
                             poisonMessageBehaviorPolicy,
                             customStringSerializer,
@@ -115,6 +114,11 @@ namespace Qluent.Queues
             var qMsg = await _cloudQueue
                 .PeekMessageAsync(null, null, token)
                 .ConfigureAwait(false);
+
+            if (qMsg == null)
+            {
+                return default(T);
+            }
 
             var obj = await FromCloudQueueMessage(qMsg, token)
                 .ConfigureAwait(false);
@@ -246,7 +250,77 @@ namespace Qluent.Queues
             return _cloudQueue.ApproximateMessageCount;
         }
 
-        #region Implements IAzureStorageQueue
+        public async Task<Message<T>> GetAsync()
+        {
+            return await GetAsync(new CancellationToken())
+                .ConfigureAwait(false);
+        }
+
+        public async Task<Message<T>> GetAsync(CancellationToken token)
+        {
+            var qMsg = await _cloudQueue
+                .GetMessageAsync(_messageTimeoutPolicy.VisibilityTimeout, null, null, token)
+                .ConfigureAwait(false);
+
+            if (qMsg == null)
+            {
+                return null;
+            }
+
+            var obj = await FromCloudQueueMessage(qMsg, token)
+                .ConfigureAwait(false);
+
+            if(obj == null)
+            {
+                return null;
+            }
+
+            return new Message<T>(qMsg.Id, qMsg.PopReceipt, obj);
+        }
+
+        public async Task<IEnumerable<Message<T>>> GetAsync(int messageCount)
+        {
+            return await GetAsync(messageCount, new CancellationToken())
+                .ConfigureAwait(false);
+        }
+
+        public async Task<IEnumerable<Message<T>>> GetAsync(int messageCount, CancellationToken token)
+        {
+            var qMsgs = await _cloudQueue
+                .GetMessagesAsync(messageCount, _messageTimeoutPolicy.VisibilityTimeout, null, null, token)
+                .ConfigureAwait(false);
+
+            var messages = new List<Message<T>>();
+
+            foreach (var qMsg in qMsgs)
+            {
+                var obj = await FromCloudQueueMessage(qMsg, token)
+                    .ConfigureAwait(false);
+
+                if (obj != null)
+                {
+                    var message = new Message<T>(qMsg.Id, qMsg.PopReceipt, obj);
+                    messages.Add(message);
+                }
+            }
+
+            return messages;
+        }
+
+        public async Task DeleteAsync(Message<T> message)
+        {
+            await DeleteAsync(message, new CancellationToken())
+                .ConfigureAwait(false);
+        }
+
+        public async Task DeleteAsync(Message<T> message, CancellationToken token)
+        {
+            await _cloudQueue
+                .DeleteMessageAsync(message.MessageId, message.PopReceipt, null, null, token)
+                .ConfigureAwait(false);
+        }
+
+        #region Internal Functionality 
 
         protected async Task Enqueue(T entity, CancellationToken token)
         {
@@ -255,10 +329,8 @@ namespace Qluent.Queues
             await _cloudQueue
                 .AddMessageAsync(qMsg, _messageTimeoutPolicy.TimeToLive, _messageTimeoutPolicy.InitialVisibilityDelay, null, null, token)
                 .ConfigureAwait(false);
-
         }
-
-       
+        
         private CloudQueueMessage ToBinaryCloudQueueMessage(T entity)
         {
             var serializedMessage = _customBinarySerializer.Serialize(entity);
@@ -329,7 +401,7 @@ namespace Qluent.Queues
                     //Swallow exceptions relating to Poison Message reenquement for now.
                 }
 
-                if (_poisonMessageBehaviorPolicy.PoisonMessageBehavior == PoisonMessageBehavior.SwallowingExceptions)
+                if (_poisonMessageBehaviorPolicy.PoisonMessageBehavior == By.SwallowingExceptions)
                 {
                     return default(T);
                 }

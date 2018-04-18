@@ -1,12 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using System.Transactions;
-using Newtonsoft.Json;
 using NUnit.Framework;
-using Qluent.NetCore.Tests.Helpers;
 using Qluent.NetCore.Tests.Stubs;
 
 namespace Qluent.NetCore.Tests
