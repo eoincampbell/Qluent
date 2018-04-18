@@ -59,7 +59,7 @@ namespace Qluent.NetCore.Tests
             var q = await Builder
                 .CreateAQueueOf<Person>()
                 .UsingStorageQueue("my-test-queue")
-                .ThatSetsAMessageTTLOf(TimeSpan.FromSeconds(1))
+                .ThatSetsAMessageTtlOf(TimeSpan.FromSeconds(1))
                 .BuildAsync();
 
             var person = Person.Create();

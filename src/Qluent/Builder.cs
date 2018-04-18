@@ -7,7 +7,7 @@
     public static class Builder
     {
         /// <summary>
-        /// Initializes a <see cref="IAzureStorageQueueBuilder{T}" /> for creating an <see cref="Queues.IAzureStorageQueue{T}"/>
+        /// Initializes a <see cref="IAzureStorageQueueBuilder{T}" /> for creating an <see cref="IAzureStorageQueue{T}"/>
         /// </summary>
         /// <typeparam name="T">The object</typeparam>
         /// <returns>The AzureStorageQueueBuilder</returns>

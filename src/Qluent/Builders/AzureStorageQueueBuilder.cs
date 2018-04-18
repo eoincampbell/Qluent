@@ -126,7 +126,7 @@
             return this;
         }
 
-        public IAzureStorageQueueBuilder<T> ThatSetsAMessageTTLOf(TimeSpan timespan)
+        public IAzureStorageQueueBuilder<T> ThatSetsAMessageTtlOf(TimeSpan timespan)
         {
             _messageTimeoutPolicy.TimeToLive = timespan;
             return this;

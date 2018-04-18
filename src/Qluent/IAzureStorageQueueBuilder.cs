@@ -1,12 +1,10 @@
-﻿using Qluent.Policies;
-using Qluent.Policies.PoisonMessageBehavior;
-using Qluent.Queues;
-using Qluent.Serialization;
-using System;
-using System.Threading.Tasks;
-
-namespace Qluent
+﻿namespace Qluent
 {
+    using Policies.PoisonMessageBehavior;
+    using Serialization;
+    using System;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Fluent API Builder
     /// </summary>
@@ -14,7 +12,6 @@ namespace Qluent
     /// <seealso cref="Qluent.IAzureStorageQueueBuilder{T}" />
     public interface IAzureStorageQueueBuilder<T>
     {
-
         /// <summary>
         /// Builds an instance of an <see cref="IAzureStorageQueue{T}"/>
         /// </summary>
@@ -38,13 +35,13 @@ namespace Qluent
         /// <returns>This builder instance</returns>
         IAzureStorageQueueBuilder<T> UsingStorageQueue(string storageQueueName);
         /// <summary>
-        /// Fluently specify a custom serializer to convert your object to a <see cref="System.String"/>
+        /// Fluently specify a custom serializer to convert your object to a <see cref="T:System.Byte[]"/>
         /// </summary>
         /// <param name="customSerlializer">The custom serlializer.</param>
         /// <returns>This builder instance</returns>
         IAzureStorageQueueBuilder<T> WithACustomSerializer(IStringMessageSerializer<T> customSerlializer);
         /// <summary>
-        /// Fluently specify a custom serializer to convert your object to a <see cref="System.Byte []"/>
+        /// Fluently specify a custom serializer to convert your object to a <see cref="T:System.Byte[]"/>
         /// </summary>
         /// <param name="customSerlializer">The custom serlializer.</param>
         /// <returns>This builder instance</returns>
@@ -89,6 +86,6 @@ namespace Qluent
         /// </summary>
         /// <param name="timespan">The timespan.</param>
         /// <returns>This builder instance</returns>
-        IAzureStorageQueueBuilder<T> ThatSetsAMessageTTLOf(TimeSpan timespan);
+        IAzureStorageQueueBuilder<T> ThatSetsAMessageTtlOf(TimeSpan timespan);
     }
 }

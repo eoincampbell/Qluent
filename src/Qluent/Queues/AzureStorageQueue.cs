@@ -68,7 +68,8 @@
                 .CreateIfNotExistsAsync()
                 .ConfigureAwait(false);
             
-            if(!string.IsNullOrWhiteSpace(_poisonMessageBehaviorPolicy?.PoisonMessageStorageQueueName))
+            if(_poisonMessageBehaviorPolicy != null && 
+               !string.IsNullOrWhiteSpace(_poisonMessageBehaviorPolicy?.PoisonMessageStorageQueueName))
             {
                 _poisonQueue = cloudQueueClient.GetQueueReference(_poisonMessageBehaviorPolicy.PoisonMessageStorageQueueName);
 
@@ -387,7 +388,7 @@
                         var poisonMessage = ToCloudQueueMessage(qMsg);
 
                         await _poisonQueue
-                             .AddMessageAsync(qMsg, null, null, null, null, token)
+                             .AddMessageAsync(poisonMessage, null, null, null, null, token)
                             .ConfigureAwait(false);
                     }
                     if (_poisonMessageBehaviorPolicy.PoisonMessageDequeueAttemptThreshold <= qMsg.DequeueCount)
