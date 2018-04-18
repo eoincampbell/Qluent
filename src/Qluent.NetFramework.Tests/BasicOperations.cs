@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Newtonsoft.Json;
 using NUnit.Framework;
-using Qluent.NetCore.Tests.Helpers;
 using Qluent.NetCore.Tests.Stubs;
 
 namespace Qluent.NetCore.Tests

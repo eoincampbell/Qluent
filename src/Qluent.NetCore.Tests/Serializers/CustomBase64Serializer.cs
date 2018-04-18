@@ -4,7 +4,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using Qluent.NetCore.Tests.Stubs;
 using Qluent.Serialization;
 
-namespace Qluent.NetCore.Tests.Helpers
+namespace Qluent.NetCore.Tests.Serializers
 {
     public class CustomBase64Serializer : IStringMessageSerializer<Person>
     {

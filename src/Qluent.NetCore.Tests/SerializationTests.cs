@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
-using Qluent.NetCore.Tests.Helpers;
 using Qluent.NetCore.Tests.Stubs;
 using System.Threading.Tasks;
+using Qluent.NetCore.Tests.Serializers;
 
 namespace Qluent.NetCore.Tests
 {

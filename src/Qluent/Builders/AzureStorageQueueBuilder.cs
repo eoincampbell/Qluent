@@ -2,10 +2,10 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Qluent.Policies;
-    using Qluent.Policies.PoisonMessageBehavior;
-    using Qluent.Queues;
-    using Qluent.Serialization;
+    using Policies;
+    using Policies.PoisonMessageBehavior;
+    using Queues;
+    using Serialization;
 
     internal class AzureStorageQueueBuilder<T> : IAzureStorageQueueBuilder<T>
     {

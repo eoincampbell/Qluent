@@ -3,7 +3,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using Qluent.NetCore.Tests.Stubs;
 using Qluent.Serialization;
 
-namespace Qluent.NetCore.Tests.Helpers
+namespace Qluent.NetFramework.Tests.Serializers
 {
     public class CustomBinarySerializer : IBinaryMessageSerializer<Person>
     {

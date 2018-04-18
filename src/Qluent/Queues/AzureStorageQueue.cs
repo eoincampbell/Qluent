@@ -1,10 +1,11 @@
 ﻿namespace Qluent.Queues
 {
+    using Messages;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Queue;
-    using Qluent.Policies;
-    using Qluent.Policies.PoisonMessageBehavior;
-    using Qluent.Serialization;
+    using Policies;
+    using Policies.PoisonMessageBehavior;
+    using Serialization;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -250,13 +251,13 @@
             return _cloudQueue.ApproximateMessageCount;
         }
 
-        public async Task<Message<T>> GetAsync()
+        public async Task<IMessage<T>> GetAsync()
         {
             return await GetAsync(new CancellationToken())
                 .ConfigureAwait(false);
         }
 
-        public async Task<Message<T>> GetAsync(CancellationToken token)
+        public async Task<IMessage<T>> GetAsync(CancellationToken token)
         {
             var qMsg = await _cloudQueue
                 .GetMessageAsync(_messageTimeoutPolicy.VisibilityTimeout, null, null, token)
@@ -278,13 +279,13 @@
             return new Message<T>(qMsg.Id, qMsg.PopReceipt, obj);
         }
 
-        public async Task<IEnumerable<Message<T>>> GetAsync(int messageCount)
+        public async Task<IEnumerable<IMessage<T>>> GetAsync(int messageCount)
         {
             return await GetAsync(messageCount, new CancellationToken())
                 .ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<Message<T>>> GetAsync(int messageCount, CancellationToken token)
+        public async Task<IEnumerable<IMessage<T>>> GetAsync(int messageCount, CancellationToken token)
         {
             var qMsgs = await _cloudQueue
                 .GetMessagesAsync(messageCount, _messageTimeoutPolicy.VisibilityTimeout, null, null, token)
@@ -307,13 +308,13 @@
             return messages;
         }
 
-        public async Task DeleteAsync(Message<T> message)
+        public async Task DeleteAsync(IMessage<T> message)
         {
             await DeleteAsync(message, new CancellationToken())
                 .ConfigureAwait(false);
         }
 
-        public async Task DeleteAsync(Message<T> message, CancellationToken token)
+        public async Task DeleteAsync(IMessage<T> message, CancellationToken token)
         {
             await _cloudQueue
                 .DeleteMessageAsync(message.MessageId, message.PopReceipt, null, null, token)

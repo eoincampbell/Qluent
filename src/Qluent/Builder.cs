@@ -1,6 +1,6 @@
 ﻿namespace Qluent
 {
-    using Qluent.Builders;
+    using Builders;
     /// <summary>
     /// Static Builder class for creating an <see cref="IAzureStorageQueueBuilder{T}" />
     /// </summary>

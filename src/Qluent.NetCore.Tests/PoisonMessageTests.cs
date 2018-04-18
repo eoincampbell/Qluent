@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
 using NUnit.Framework;
-using Qluent.NetCore.Tests.Helpers;
 using Qluent.NetCore.Tests.Stubs;
 using Qluent.Policies.PoisonMessageBehavior;
 using System;
 using System.Threading.Tasks;
+using Qluent.NetCore.Tests.Serializers;
 
 namespace Qluent.NetCore.Tests
 {

@@ -1,6 +1,6 @@
 ﻿namespace Qluent.Policies
 {
-    using Qluent.Policies.PoisonMessageBehavior;
+    using PoisonMessageBehavior;
 
     internal class PoisonMessageBehaviorPolicy : IPoisonMessageBehaviorPolicy
     {

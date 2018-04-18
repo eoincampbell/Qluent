@@ -1,7 +1,7 @@
 ﻿namespace Qluent.Queues
 {
-    using Qluent.Policies;
-    using Qluent.Serialization;
+    using Policies;
+    using Serialization;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -35,7 +35,6 @@
             IStringMessageSerializer<T> customStringSerializer = null,
             IBinaryMessageSerializer<T> customBinarySerializer = null)
         {
-
             var queue = new TransactionalAzureStorageQueue<T>(settings,
                             messageTimeoutPolicy,
                             poisonMessageBehaviorPolicy,
