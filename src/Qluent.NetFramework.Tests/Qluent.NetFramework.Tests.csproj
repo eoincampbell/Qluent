@@ -63,7 +63,6 @@
     <Compile Include="SerializationTests.cs" />
     <Compile Include="Serializers\CustomBinarySerializer.cs" />
     <Compile Include="Stubs\Job.cs" />
-    <Compile Include="TransactionalTest.cs" />
     <Compile Include="BuilderTests.cs" />
     <Compile Include="BasicOperations.cs" />
     <Compile Include="Serializers\CustomBase64Serializer.cs" />

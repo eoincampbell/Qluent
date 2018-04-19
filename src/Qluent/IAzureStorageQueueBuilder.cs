@@ -47,11 +47,6 @@
         /// <returns>This builder instance</returns>
         IAzureStorageQueueBuilder<T> WithACustomSerializer(IBinaryMessageSerializer<T> customSerlializer);
         /// <summary>
-        /// Fluently specify whether your queue needs to be <see cref="System.Transactions.TransactionScope"/> aware
-        /// </summary>
-        /// <returns>This builder instance</returns>
-        IAzureStorageQueueBuilder<T> ThatIsTransactionScopeAware();
-        /// <summary>
         /// Fluently specify the dequeue threshold to consider messages poison
         /// </summary>
         /// <param name="dequeueAttempts">The dequeue attempts.</param>

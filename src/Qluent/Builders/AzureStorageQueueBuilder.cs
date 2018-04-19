@@ -16,9 +16,6 @@
         private IStringMessageSerializer<T> _customStringSerializer;
         private IBinaryMessageSerializer<T> _customBinarySerializer;
 
-        private bool _transactionScopeAware;
-
-        
         public AzureStorageQueueBuilder()
         {
             _settings = new AzureStorageQueueSettings();
@@ -26,44 +23,25 @@
             _poisonMessageBehaviorPolicy = new PoisonMessageBehaviorPolicy();
             _customStringSerializer = null;
             _customBinarySerializer = null;
-            _transactionScopeAware = false;
         }
 
         public IAzureStorageQueue<T> Build()
         {
-            var queue = _transactionScopeAware
-                ? TransactionalAzureStorageQueue<T>.CreateAsync(_settings,
-                            _messageTimeoutPolicy,
-                            _poisonMessageBehaviorPolicy,
-                            _customStringSerializer,
-                            _customBinarySerializer).Result
-                : AzureStorageQueue<T>.CreateAsync(_settings,
+            return AzureStorageQueue<T>.CreateAsync(_settings,
                             _messageTimeoutPolicy,
                             _poisonMessageBehaviorPolicy,
                             _customStringSerializer,
                             _customBinarySerializer).Result;
-
-            return queue;
         }
 
         public async Task<IAzureStorageQueue<T>> BuildAsync()
         {
-
-            var queue = _transactionScopeAware
-                ? await TransactionalAzureStorageQueue<T>.CreateAsync(_settings,
-                            _messageTimeoutPolicy,
-                            _poisonMessageBehaviorPolicy,
-                            _customStringSerializer,
-                            _customBinarySerializer)
-                            .ConfigureAwait(false)
-                : await AzureStorageQueue<T>.CreateAsync(_settings,
+            return await AzureStorageQueue<T>.CreateAsync(_settings,
                             _messageTimeoutPolicy,
                             _poisonMessageBehaviorPolicy,
                             _customStringSerializer,
                             _customBinarySerializer)
                             .ConfigureAwait(false);
-
-            return queue;
         }
 
         public IAzureStorageQueueBuilder<T> ConnectedToAccount(string connectionString)
@@ -87,12 +65,6 @@
         public IAzureStorageQueueBuilder<T> WithACustomSerializer(IBinaryMessageSerializer<T> customSerlializer)
         {
             _customBinarySerializer = customSerlializer;
-            return this;
-        }
-
-        public IAzureStorageQueueBuilder<T> ThatIsTransactionScopeAware()
-        {
-            _transactionScopeAware = true;
             return this;
         }
 

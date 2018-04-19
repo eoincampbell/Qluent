@@ -81,40 +81,40 @@
 
         public virtual async Task PushAsync(T message)
         {
-            await PushAsync(message, new CancellationToken())
+            await PushAsync(message, CancellationToken.None)
                 .ConfigureAwait(false);
         }
 
-        public virtual async Task PushAsync(T message, CancellationToken token)
+        public virtual async Task PushAsync(T message, CancellationToken cancellationToken)
         {
-            await Enqueue(message, token)
+            await Enqueue(message, cancellationToken)
                 .ConfigureAwait(false);
         }
 
         public virtual async Task PushAsync(IEnumerable<T> messages)
         {
-            await PushAsync(messages, new CancellationToken())
+            await PushAsync(messages, CancellationToken.None)
                 .ConfigureAwait(false);
         }
 
-        public virtual async Task PushAsync(IEnumerable<T> messages, CancellationToken token)
+        public virtual async Task PushAsync(IEnumerable<T> messages, CancellationToken cancellationToken)
         {
             foreach (var message in messages)
             {
-                await Enqueue(message, token)
+                await Enqueue(message, cancellationToken)
                     .ConfigureAwait(false);
             }
         }
         public async Task<T> PeekAsync()
         {
-            return await PeekAsync(new CancellationToken())
+            return await PeekAsync(CancellationToken.None)
                 .ConfigureAwait(false);
         }
 
-        public async Task<T> PeekAsync(CancellationToken token)
+        public async Task<T> PeekAsync(CancellationToken cancellationToken)
         {
             var qMsg = await _cloudQueue
-                .PeekMessageAsync(null, null, token)
+                .PeekMessageAsync(null, null, cancellationToken)
                 .ConfigureAwait(false);
 
             if (qMsg == null)
@@ -122,7 +122,7 @@
                 return default(T);
             }
 
-            var obj = await FromCloudQueueMessage(qMsg, token)
+            var obj = await FromCloudQueueMessage(qMsg, cancellationToken)
                 .ConfigureAwait(false);
 
             return obj;
@@ -130,11 +130,11 @@
 
         public async Task<IEnumerable<T>> PeekAsync(int messageCount)
         {
-            return await PeekAsync(messageCount, new CancellationToken())
+            return await PeekAsync(messageCount, CancellationToken.None)
                 .ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<T>> PeekAsync(int messageCount, CancellationToken token)
+        public async Task<IEnumerable<T>> PeekAsync(int messageCount, CancellationToken cancellationToken)
         {
             var qMsgs = await _cloudQueue
                 .PeekMessagesAsync(messageCount)
@@ -144,7 +144,7 @@
 
             foreach (var qMsg in qMsgs)
             {
-                var obj = await FromCloudQueueMessage(qMsg, token)
+                var obj = await FromCloudQueueMessage(qMsg, cancellationToken)
                     .ConfigureAwait(false);
 
                 if (obj != null)
@@ -158,14 +158,14 @@
 
         public async Task<T> PopAsync()
         {
-            return await PopAsync(new CancellationToken())
+            return await PopAsync(CancellationToken.None)
                 .ConfigureAwait(false);
         }
 
-        public async Task<T> PopAsync(CancellationToken token)
+        public async Task<T> PopAsync(CancellationToken cancellationToken)
         {
             var qMsg = await _cloudQueue
-                .GetMessageAsync(_messageTimeoutPolicy.VisibilityTimeout, null, null, token)
+                .GetMessageAsync(_messageTimeoutPolicy.VisibilityTimeout, null, null, cancellationToken)
                 .ConfigureAwait(false);
 
             if (qMsg == null)
@@ -173,13 +173,13 @@
                 return default(T);
             }
 
-            var obj = await FromCloudQueueMessage(qMsg, token)
+            var obj = await FromCloudQueueMessage(qMsg, cancellationToken)
                 .ConfigureAwait(false);
 
             if (obj != null)
             {
                 await _cloudQueue
-                    .DeleteMessageAsync(qMsg.Id, qMsg.PopReceipt, null, null, token)
+                    .DeleteMessageAsync(qMsg.Id, qMsg.PopReceipt, null, null, cancellationToken)
                     .ConfigureAwait(false);
             }
 
@@ -188,14 +188,14 @@
 
         public async Task<IEnumerable<T>> PopAsync(int messageCount)
         {
-            return await PopAsync(messageCount, new CancellationToken())
+            return await PopAsync(messageCount, CancellationToken.None)
                 .ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<T>> PopAsync(int messageCount, CancellationToken token)
+        public async Task<IEnumerable<T>> PopAsync(int messageCount, CancellationToken cancellationToken)
         {
             var qMsgs = await _cloudQueue
-                .GetMessagesAsync(messageCount, _messageTimeoutPolicy.VisibilityTimeout, null, null, token)
+                .GetMessagesAsync(messageCount, _messageTimeoutPolicy.VisibilityTimeout, null, null, cancellationToken)
                 .ConfigureAwait(false);
 
 
@@ -204,7 +204,7 @@
 
             foreach (var qMsg in qMsgs)
             {
-                var obj = await FromCloudQueueMessage(qMsg, token)
+                var obj = await FromCloudQueueMessage(qMsg, cancellationToken)
                     .ConfigureAwait(false);
 
                 if (obj != null)
@@ -217,7 +217,7 @@
             foreach (var qMsg in qMsgsToDelete)
             {
                 await _cloudQueue
-                    .DeleteMessageAsync(qMsg.Id, qMsg.PopReceipt, null, null, token)
+                    .DeleteMessageAsync(qMsg.Id, qMsg.PopReceipt, null, null, cancellationToken)
                     .ConfigureAwait(false);
             }
             return objs;
@@ -225,28 +225,28 @@
 
         public async Task PurgeAsync()
         {
-            await PurgeAsync(new CancellationToken())
+            await PurgeAsync(CancellationToken.None)
                 .ConfigureAwait(false);
         }
 
-        public async Task PurgeAsync(CancellationToken token)
+        public async Task PurgeAsync(CancellationToken cancellationToken)
         {
             await _cloudQueue
-                .ClearAsync(null, null, token)
+                .ClearAsync(null, null, cancellationToken)
                 .ConfigureAwait(false);
         }
 
         public async Task<int?> CountAsync()
         {
-            return await CountAsync(new CancellationToken())
+            return await CountAsync(CancellationToken.None)
                 .ConfigureAwait(false);
         }
 
-        public async Task<int?> CountAsync(CancellationToken token)
+        public async Task<int?> CountAsync(CancellationToken cancellationToken)
         {
 
             await _cloudQueue
-            .FetchAttributesAsync(null, null, token)
+            .FetchAttributesAsync(null, null, cancellationToken)
             .ConfigureAwait(false);
 
             return _cloudQueue.ApproximateMessageCount;
@@ -254,14 +254,14 @@
 
         public async Task<IMessage<T>> GetAsync()
         {
-            return await GetAsync(new CancellationToken())
+            return await GetAsync(CancellationToken.None)
                 .ConfigureAwait(false);
         }
 
-        public async Task<IMessage<T>> GetAsync(CancellationToken token)
+        public async Task<IMessage<T>> GetAsync(CancellationToken cancellationToken)
         {
             var qMsg = await _cloudQueue
-                .GetMessageAsync(_messageTimeoutPolicy.VisibilityTimeout, null, null, token)
+                .GetMessageAsync(_messageTimeoutPolicy.VisibilityTimeout, null, null, cancellationToken)
                 .ConfigureAwait(false);
 
             if (qMsg == null)
@@ -269,7 +269,7 @@
                 return null;
             }
 
-            var obj = await FromCloudQueueMessage(qMsg, token)
+            var obj = await FromCloudQueueMessage(qMsg, cancellationToken)
                 .ConfigureAwait(false);
 
             if(obj == null)
@@ -282,21 +282,21 @@
 
         public async Task<IEnumerable<IMessage<T>>> GetAsync(int messageCount)
         {
-            return await GetAsync(messageCount, new CancellationToken())
+            return await GetAsync(messageCount, CancellationToken.None)
                 .ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<IMessage<T>>> GetAsync(int messageCount, CancellationToken token)
+        public async Task<IEnumerable<IMessage<T>>> GetAsync(int messageCount, CancellationToken cancellationToken)
         {
             var qMsgs = await _cloudQueue
-                .GetMessagesAsync(messageCount, _messageTimeoutPolicy.VisibilityTimeout, null, null, token)
+                .GetMessagesAsync(messageCount, _messageTimeoutPolicy.VisibilityTimeout, null, null, cancellationToken)
                 .ConfigureAwait(false);
 
             var messages = new List<Message<T>>();
 
             foreach (var qMsg in qMsgs)
             {
-                var obj = await FromCloudQueueMessage(qMsg, token)
+                var obj = await FromCloudQueueMessage(qMsg, cancellationToken)
                     .ConfigureAwait(false);
 
                 if (obj != null)
@@ -311,25 +311,25 @@
 
         public async Task DeleteAsync(IMessage<T> message)
         {
-            await DeleteAsync(message, new CancellationToken())
+            await DeleteAsync(message, CancellationToken.None)
                 .ConfigureAwait(false);
         }
 
-        public async Task DeleteAsync(IMessage<T> message, CancellationToken token)
+        public async Task DeleteAsync(IMessage<T> message, CancellationToken cancellationToken)
         {
             await _cloudQueue
-                .DeleteMessageAsync(message.MessageId, message.PopReceipt, null, null, token)
+                .DeleteMessageAsync(message.MessageId, message.PopReceipt, null, null, cancellationToken)
                 .ConfigureAwait(false);
         }
 
         #region Internal Functionality 
 
-        protected async Task Enqueue(T entity, CancellationToken token)
+        protected async Task Enqueue(T entity, CancellationToken cancellationToken)
         {
             var qMsg = ToCloudQueueMessage(entity);
 
             await _cloudQueue
-                .AddMessageAsync(qMsg, _messageTimeoutPolicy.TimeToLive, _messageTimeoutPolicy.InitialVisibilityDelay, null, null, token)
+                .AddMessageAsync(qMsg, _messageTimeoutPolicy.TimeToLive, _messageTimeoutPolicy.InitialVisibilityDelay, null, null, cancellationToken)
                 .ConfigureAwait(false);
         }
         
@@ -370,7 +370,7 @@
                 : ToStringCloudQueueMessage(poisonMessage.AsString);
         }
 
-        private async Task<T> FromCloudQueueMessage(CloudQueueMessage qMsg, CancellationToken token)
+        private async Task<T> FromCloudQueueMessage(CloudQueueMessage qMsg, CancellationToken cancellationToken)
         {
             try
             {
@@ -388,13 +388,13 @@
                         var poisonMessage = ToCloudQueueMessage(qMsg);
 
                         await _poisonQueue
-                             .AddMessageAsync(poisonMessage, null, null, null, null, token)
+                             .AddMessageAsync(poisonMessage, null, null, null, null, cancellationToken)
                             .ConfigureAwait(false);
                     }
                     if (_poisonMessageBehaviorPolicy.PoisonMessageDequeueAttemptThreshold <= qMsg.DequeueCount)
                     {
                         await _cloudQueue
-                            .DeleteMessageAsync(qMsg.Id, qMsg.PopReceipt, null, null, token)
+                            .DeleteMessageAsync(qMsg.Id, qMsg.PopReceipt, null, null, cancellationToken)
                             .ConfigureAwait(false);
                     }
                 }

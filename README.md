@@ -328,12 +328,6 @@ var q = Builder
 
 ---
 
-### 2 phase commit using TransactionScopes
-
-//Todo
-
----
-
 ## Background
 
 ### Why do I need this?
@@ -408,7 +402,6 @@ Kafka, NService Bus, Mulesoft etc...)
 - ~~Support Pop Receipts so that the consumer can decide how to handle messages~~
 - ~~Write up the docs around message visibility when the above is done~~
 - ~~.NET Core Tests~~
-- ~~Fix the TransactionScope stuff~~
-  - Document it.
+- ~~Remove the TransactionScope stuff & stick it in an experimental branch~~
 - Include NLog/ILogger calls so that you can hook in your logging framework
   - Docment it.
