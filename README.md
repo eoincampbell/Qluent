@@ -12,7 +12,6 @@
    - [Handling Poison Messages]
    - [Customising Serialization]
    - [Asynchronous Model]
-   - [Logging]
  - [Background]
    - [Why do I need this?]
    - [Why did you build this?]
@@ -403,5 +402,4 @@ Kafka, NService Bus, Mulesoft etc...)
 - ~~Write up the docs around message visibility when the above is done~~
 - ~~.NET Core Tests~~
 - ~~Remove the TransactionScope stuff & stick it in an experimental branch~~
-- Include NLog/ILogger calls so that you can hook in your logging framework
-  - Docment it.
+- Build a Sample Message Consumer
