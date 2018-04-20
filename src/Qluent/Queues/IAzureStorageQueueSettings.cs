@@ -1,6 +1,6 @@
 ﻿namespace Qluent.Queues
 {
-    internal interface IAzureStorageQueueSettings
+    internal interface IMessageConsumerSettings
     {
         string ConnectionString { get; set; }
         string StorageQueueName { get; set; }

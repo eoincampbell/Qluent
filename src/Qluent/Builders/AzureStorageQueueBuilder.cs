@@ -9,7 +9,7 @@
 
     internal class AzureStorageQueueBuilder<T> : IAzureStorageQueueBuilder<T>
     {
-        private readonly IAzureStorageQueueSettings _settings;
+        private readonly IMessageConsumerSettings _settings;
         private readonly IMessageTimeoutPolicy _messageTimeoutPolicy;
         private readonly IPoisonMessageBehaviorPolicy _poisonMessageBehaviorPolicy;
 

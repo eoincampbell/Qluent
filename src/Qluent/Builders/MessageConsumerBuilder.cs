@@ -19,7 +19,7 @@ namespace Qluent
         }
 
 
-        public IMessageConsumerBuilder<T> UsingStorageQueue(IAzureStorageQueue<T> queue)
+        public IMessageConsumerBuilder<T> UsingQueue(IAzureStorageQueue<T> queue)
         {
             _queue = queue;
             return this;

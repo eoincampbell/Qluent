@@ -5,7 +5,7 @@ namespace Qluent
 {
     public interface IMessageConsumerBuilder<T>
     {
-        IMessageConsumerBuilder<T> UsingStorageQueue(IAzureStorageQueue<T> queue);
+        IMessageConsumerBuilder<T> UsingQueue(IAzureStorageQueue<T> queue);
         IMessageConsumerBuilder<T> ThatHandlesMessagesUsing(IMessageHandler<T> messageHandler);
         IMessageConsumerBuilder<T> AndHandlesFailedMessagesUsing(IMessageHandler<T> failedMessagehandler);
         IMessageConsumerBuilder<T> AndHandlesExceptionsUsing(IMessageExceptionHandler<T> messageExceptionHandler);

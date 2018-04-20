@@ -1,22 +1,27 @@
 # Qluent
 
- - [What is this?]
- - [How do I use it?]
-   - [Creating a Qluent Queue]
-   - [Basic Operations]
-   - [Sending Messages]
-   - [Receiving Messages]
-   - [Receiving Messages & Controlling Deletion]
- - [Advanced Features]
-   - [Message Visibility]
-   - [Handling Poison Messages]
-   - [Customising Serialization]
-   - [Asynchronous Model]
- - [Background]
-   - [Why do I need this?]
-   - [Why did you build this?]
-   - [What is this not?]
-   - [Todo List]
+ - [What is this?](#what-is-this)
+ - [Working with Queues](#working-with-queues)
+   - [Creating a Queue](#creating-a-queue)
+   - [Basic Operations](#basic-operations)
+   - [Sending Messages](#sending-messages)
+   - [Receiving Messages](#receiving-messages)
+   - [Receiving Messages & Controlling Deletion](#receiving-messages-controlling-deletion)
+ - [Working with Queue Consumers](#working-with-queue-consumers)
+   - [Creating a Consumer](#creating-a-consumer)
+   - [Processing Messages](#processing-messages)
+   - [Handling Exceptions](#handling-exceptions)
+   - [Consumer Settings](#consumer-settings)
+ - [Advanced Features](#advanced-features)
+   - [Message Visibility](#message-visibility)
+   - [Handling Poison Messages](#handling-poison-messages)
+   - [Customising Serialization](#customising-serialization)
+   - [Asynchronous Model](#asynchronous-model)
+ - [Background](#background)
+   - [Why do I need this?](#why-do-i-need-this)
+   - [Why did you build this?](#why-did-you-build-this)
+   - [What is this not?](#what-is-this-not)
+   - [Todo List](#todo-list)
 
 ---
 
@@ -30,18 +35,28 @@ strongly typed objects like this.
 
 ```csharp
 var q = await Builder
-    .CreateAQueueOf<Person>()
+    .CreateAQueueOf<Task>()
     .UsingStorageQueue("my-test-queue")
     .BuildAsync();
     
-var person = await q.PopAsync();
+await q.PushAsync(new Task());
+
+var consumer = Builder
+    .CreateAConsumerFor<Person>()
+    .UsingQueue(q)
+    .ThatHandlesMessagesUsing(new myCustomHandlerImpl())
+    .Build();
+
+await consumer.Start()
 ```
 
 ---
 
-## How do I use it?
+## Working with Queues
 
-### Creating a Qluent Queue
+---
+
+### Creating a Queue
 
 By default the builder will create a queue connected to development storage.
 
@@ -170,6 +185,26 @@ try
 }
 catch(Exception ex){ ... }
 ```
+
+---
+
+## Working with Queue Consumers
+
+---
+
+### Creating a Consumer
+
+---
+
+### Processing Messages
+
+---
+
+### Handling Exceptions
+
+---
+
+### Consumer Settings
 
 ---
 
