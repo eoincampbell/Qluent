@@ -12,6 +12,7 @@
    - [Processing Messages](#processing-messages)
    - [Handling Exceptions](#handling-exceptions)
    - [Consumer Settings](#consumer-settings)
+   - [Logging](#Logging)
  - [Advanced Features](#advanced-features)
    - [Message Visibility](#message-visibility)
    - [Handling Poison Messages](#handling-poison-messages)
@@ -190,25 +191,116 @@ catch(Exception ex){ ... }
 
 ## Working with Queue Consumers
 
+Qluent provides a simple message consumer which you can provide with a 
+queue and configure to handle your messages. This allows you to focus on
+the message processing without worrying about the dispatcher polling logic.
+
 ---
 
 ### Creating a Consumer
+
+To create a consumer, you first build a Queue, and then build a consumer using that Queue.
+
+```csharp
+//Create Queue
+var consumerQueue = await Builder
+    .CreateAQueueOf<Job>()
+    .UsingStorageQueue("my-job-queue")
+    .BuildAsync();
+
+//Create Consumer
+var consumer = Builder
+    .CreateAMessageConsumerFor<Job>()
+    .UsingQueue(consumerQueue)
+    ...
+    .Build();
+``` 
 
 ---
 
 ### Processing Messages
 
+The message consumer supports 3 different handlers for processing your messages.
+
+1. A message handler which describes how to process your messages
+2. A failed message handler which describes what to do when the message handler fails
+
+```csharp
+var consumer = Builder
+    .CreateAMessageConsumerFor<Job>()
+    .UsingQueue(consumerQueue)
+    .ThatHandlesMessagesUsing(HandleMessage)
+    .AndHandlesFailedMessagesUsing(HandleFailure)
+    .Build();
+``` 
+
+The message handlers can be passed to the fluent api as either
+
+ - a `Func<IMessage<T>, bool>` 
+ or
+ - as an implementation of `Qluent.Consumers.Handlers.IMessageHandler<T>`
+
 ---
 
 ### Handling Exceptions
+
+In the event the main message handler throws an exception, 
+a special handler is available for post-processing messages.
+
+```csharp
+var consumer = Builder
+    .CreateAMessageConsumerFor<Job>()
+    .UsingQueue(consumerQueue)
+    ...
+    .AndHandlesExceptionsUsing(HandleException)
+    .Build();
+``` 
+
+The message exception handler can be passed to the fluent api as either
+
+ - a `Func<IMessage<T>, Exception, bool>` 
+ or
+ - as an implementation of `Qluent.Consumers.Handlers.IMessageExceptionHandler<T>`
+
 
 ---
 
 ### Consumer Settings
 
+The consumer supports a number of other settings as well. While polling an empty
+queue the Consumer can be configured how often to re-poll while waiting. By default
+the consumer will requery the queue every 5 seconds.
+
+You can override this behavior by providing a custom `Qluent.Consumers.Policies.IMessageConsumerQueuePollingPolicy`
+
+The library provides 2 built in policies
+
+ - `SetIntervalQueuePollingPolicy` which specifies a set number of seconds between polls
+ - `BackOffQueuePolingPolicy` which backs off the poling frequency by doubling the interval from 1 second to 60 seconds               
+
+```csharp
+var consumer = Builder
+    .CreateAMessageConsumerFor<Job>()
+    .UsingQueue(consumerQueue)
+    ...
+    .WithAQueuePolingPolicyOf(new SetIntervalQueuePolingPolicy(5))
+    .Build();
+```
+
+---
+
+### Logging
+
+//TODO
+
 ---
 
 ## Advanced Features
+
+The `IAzureStorageQueue` Builder supports a number of other advanced features that let
+you control the more common aspects of StorageQueues without having to dive into the SDK.
+
+---
 
 ### Message Visibility
 
@@ -355,13 +447,6 @@ var q = Builder
 
 ---
 
-### Logging
-
-//Todo
-
-
----
-
 ## Background
 
 ### Why do I need this?
@@ -437,4 +522,8 @@ Kafka, NService Bus, Mulesoft etc...)
 - ~~Write up the docs around message visibility when the above is done~~
 - ~~.NET Core Tests~~
 - ~~Remove the TransactionScope stuff & stick it in an experimental branch~~
-- Build a Sample Message Consumer
+- ~~Build a Sample Message Consumer~~
+  - ~~Test Harness~~
+  - Logging
+  - ~~Documentation~~
+  - XMLDoc Comment the Public API

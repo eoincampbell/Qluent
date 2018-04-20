@@ -19,7 +19,7 @@ namespace Qluent.NetCore.ConsumerTestHarness
                 .UsingStorageQueue("my-job-queue")
                 .ThatConsidersMessagesPoisonAfter(1)
                 .AndHandlesExceptionsOnPoisonMessages(By.SwallowingExceptions)
-                .BuildAsync();
+                .BuildAsync(cancellationTokenSource.Token);
 
             //Create Consumer
             var consumer = Builder
@@ -28,7 +28,7 @@ namespace Qluent.NetCore.ConsumerTestHarness
                 .ThatHandlesMessagesUsing(HandleMessage)
                 .AndHandlesFailedMessagesUsing(HandleFailure)
                 .AndHandlesExceptionsUsing(HandleException)
-                .WithAQueuePolingPolicyOf(new SetIntervalQueuePolingPolicy(5))
+                .WithAQueuePolingPolicyOf(new SetIntervalQueuePolingPolicy(10000))
                 .Build();
 
             consumer.Start(cancellationTokenSource.Token);
@@ -36,7 +36,7 @@ namespace Qluent.NetCore.ConsumerTestHarness
             var producerQueue = await Builder
                 .CreateAQueueOf<Job>()
                 .UsingStorageQueue("my-int-queue")
-                .BuildAsync();
+                .BuildAsync(cancellationTokenSource.Token);
 
             RunProducer(producerQueue, cancellationTokenSource.Token);
 
