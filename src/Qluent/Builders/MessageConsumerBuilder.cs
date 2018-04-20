@@ -1,12 +1,10 @@
-﻿using System;
-
-namespace Qluent.Builders
+﻿namespace Qluent.Builders
 {
     using Consumers;
     using Consumers.Handlers;
     using Consumers.Policies;
-
-    public class MessageConsumerBuilder<T> : IMessageConsumerBuilder<T>
+    using System;
+    internal class MessageConsumerBuilder<T> : IMessageConsumerBuilder<T>
     {
         private readonly IMessageConsumerSettings _settings;
         private IAzureStorageQueue<T> _queue;
@@ -19,7 +17,6 @@ namespace Qluent.Builders
         {
             _settings = new MessageConsumerSettings();
         }
-
 
         public IMessageConsumerBuilder<T> UsingQueue(IAzureStorageQueue<T> queue)
         {

@@ -1,17 +1,15 @@
-﻿using System.Threading;
-
-namespace Qluent
+﻿namespace Qluent
 {
     using Queues.Policies.PoisonMessageBehavior;
     using Serialization;
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Fluent API Builder
+    /// Fluent API Builder for creating an <see cref="IAzureStorageQueue{T}" />
     /// </summary>
-    /// <typeparam name="T">The object type</typeparam>
-    /// <seealso cref="Qluent.IAzureStorageQueueBuilder{T}" />
+    /// <typeparam name="T">The object type of the queue's message payload</typeparam>
     public interface IAzureStorageQueueBuilder<T>
     {
         /// <summary>

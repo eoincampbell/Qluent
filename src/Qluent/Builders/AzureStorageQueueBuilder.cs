@@ -1,8 +1,7 @@
-﻿using System.Threading;
-
-namespace Qluent.Builders
+﻿namespace Qluent.Builders
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Queues.Policies;
     using Queues.Policies.PoisonMessageBehavior;

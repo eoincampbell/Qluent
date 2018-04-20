@@ -532,5 +532,6 @@ Kafka, NService Bus, Mulesoft etc...)
 - ~~Build a Sample Message Consumer~~
   - ~~Test Harness~~
   - Logging
+  - Unit Tests
   - ~~Documentation~~
-  - XMLDoc Comment the Public API
+  - ~~XMLDoc Comment the Public API~~

@@ -1,11 +1,12 @@
-using System;
-
 namespace Qluent.Consumers.Policies
 {
+    using System;
+
+    /// <inheritdoc />
     /// <summary>
-    /// An <see cref="IMessageConsumerQueuePolingPolicy"/> which always returns a static interval regardless of previous success/failure
+    /// An <see cref="T:Qluent.Consumers.Policies.IMessageConsumerQueuePolingPolicy" /> which always returns a static interval regardless of previous success/failure
     /// </summary>
-    /// <seealso cref="Qluent.Consumers.Policies.IMessageConsumerQueuePolingPolicy" />
+    /// <seealso cref="T:Qluent.Consumers.Policies.IMessageConsumerQueuePolingPolicy" />
     public class SetIntervalQueuePolingPolicy : IMessageConsumerQueuePolingPolicy
     {
         private readonly double _intervalMilliseconds;
@@ -19,6 +20,7 @@ namespace Qluent.Consumers.Policies
             _intervalMilliseconds = intervalMilliseconds;
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Gets the next delay interval
         /// </summary>
@@ -31,6 +33,7 @@ namespace Qluent.Consumers.Policies
             return TimeSpan.FromMilliseconds(_intervalMilliseconds);
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Resets the policy to its default delay interval
         /// </summary>

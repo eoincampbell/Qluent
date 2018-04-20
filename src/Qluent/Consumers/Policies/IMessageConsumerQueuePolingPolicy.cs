@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Qluent.Consumers.Policies
+﻿namespace Qluent.Consumers.Policies
 {
+    using System;
+
     /// <summary>
     /// An interface which defines what the next delay should be before polling the storage queue.
     /// 

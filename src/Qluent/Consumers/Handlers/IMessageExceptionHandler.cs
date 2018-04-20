@@ -9,7 +9,7 @@
     /// which has been dequeued if processing of the message resulted in an exception.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IMessageExceptionHandler<T>
+    public interface IMessageExceptionHandler<in T>
     {
         /// <summary>
         /// Handles the specified message.

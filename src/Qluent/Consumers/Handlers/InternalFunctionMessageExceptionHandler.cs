@@ -6,16 +6,16 @@
 
     internal class InternalFunctionMessageExceptionHandler<T> : IMessageExceptionHandler<T>
     {
-        private readonly Func<IMessage<T>, Exception, bool> _function;
+        private readonly Func<IMessage<T>, Exception, CancellationToken, Task<bool>> _function;
 
-        internal InternalFunctionMessageExceptionHandler(Func<IMessage<T>, Exception, bool> function)
+        internal InternalFunctionMessageExceptionHandler(Func<IMessage<T>, Exception, CancellationToken, Task<bool>> function)
         {
             _function = function;
         }
 
-        public Task<bool> Handle(IMessage<T> message, Exception exception, CancellationToken cancellationToken)
+        public async Task<bool> Handle(IMessage<T> message, Exception exception, CancellationToken cancellationToken)
         {
-            return Task.FromResult(_function(message, exception));
+            return await _function(message, exception, cancellationToken).ConfigureAwait(false);
         }
     }
 }
