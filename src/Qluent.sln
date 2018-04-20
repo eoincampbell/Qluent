@@ -13,11 +13,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		..\.gitattributes = ..\.gitattributes
 		..\.gitignore = ..\.gitignore
+		GlobalAssemblyInfo.cs = GlobalAssemblyInfo.cs
 		..\LICENSE = ..\LICENSE
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Qluent.NetCore.ConsumerTestHarness", "Qluent.NetCore.ConsumerTestHarness\Qluent.NetCore.ConsumerTestHarness.csproj", "{5A94D32F-1AB3-4A3F-9F31-E3075A22AC27}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Qluent.NetCore.ConsumerTestHarness", "Qluent.NetCore.ConsumerTestHarness\Qluent.NetCore.ConsumerTestHarness.csproj", "{5A94D32F-1AB3-4A3F-9F31-E3075A22AC27}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
