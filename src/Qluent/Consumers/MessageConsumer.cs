@@ -25,10 +25,11 @@
             IMessageExceptionHandler<T> exceptionHandler
             )
         {
-            _settings = settings;
-            _queue = queue;
-            _queuePolingPolicy = queuePolingPolicy;
-            _messageHandler = messageHandler;
+            
+            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _queue = queue ?? throw new ArgumentNullException(nameof(queue)); 
+            _queuePolingPolicy = queuePolingPolicy ?? throw new ArgumentNullException(nameof(queue));
+            _messageHandler = messageHandler ?? throw new ArgumentNullException(nameof(messageHandler));
             _failedMessageHandler = failedMessageHandler;
             _exceptionHandler = exceptionHandler;
         }
@@ -45,38 +46,43 @@
                     {
                         currentMessage = await _queue.GetAsync(cancellationToken);
 
-                        if (currentMessage != null) break;
+                        if (currentMessage != null)
+                        {
+                            _queuePolingPolicy.NextDelay(true);
+                            break;
+                        }
 
                         await Task.Delay(_queuePolingPolicy.NextDelay(false), cancellationToken);
                     }
 
-                    _queuePolingPolicy.Reset();
+                    
 
                     try
                     {
+                        //attempt to process the message
                         var handlerSuccess = await _messageHandler.Handle(currentMessage, cancellationToken);
 
-                        if (handlerSuccess)
+                        if (handlerSuccess ||   
+                            _failedMessageHandler == null)
                         {
+                            //if the handler is successful or if we don't a failed handler to fall back on
+                            //then consider the message "handled" and remove the message
                             await _queue.DeleteAsync(currentMessage, cancellationToken);
                         }
                         else
                         {
-                            if (_failedMessageHandler == null) continue;
-
-                            var failedHandlerSuccess = await _failedMessageHandler.Handle(currentMessage, cancellationToken);
-
-                            if (failedHandlerSuccess)
-                            {
-                                await _queue.DeleteAsync(currentMessage, cancellationToken);
-                            }
+                            await _failedMessageHandler.Handle(currentMessage, cancellationToken);
+                            await _queue.DeleteAsync(currentMessage, cancellationToken);       
                         }
                     }
                     catch (Exception ex)
                     {
                         try
                         {
-                            await _exceptionHandler.Handle(currentMessage, ex, cancellationToken);
+                            if (_failedMessageHandler != null)
+                            {
+                                await _exceptionHandler.Handle(currentMessage, ex, cancellationToken);
+                            }
                         }
                         catch
                         {

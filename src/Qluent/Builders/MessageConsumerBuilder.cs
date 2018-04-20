@@ -1,9 +1,11 @@
-﻿using Qluent.Consumers;
-using Qluent.Consumers.Handlers;
-using Qluent.Consumers.Policies;
+﻿using System;
 
-namespace Qluent
+namespace Qluent.Builders
 {
+    using Consumers;
+    using Consumers.Handlers;
+    using Consumers.Policies;
+
     public class MessageConsumerBuilder<T> : IMessageConsumerBuilder<T>
     {
         private readonly IMessageConsumerSettings _settings;
@@ -31,15 +33,33 @@ namespace Qluent
             return this;
         }
 
+        public IMessageConsumerBuilder<T> ThatHandlesMessagesUsing(Func<IMessage<T>, bool> messageHandler)
+        {
+            _messageHandler = new InternalFunctionMessageHandler<T>(messageHandler);
+            return this;
+        }
+
         public IMessageConsumerBuilder<T> AndHandlesFailedMessagesUsing(IMessageHandler<T> failedMessagehandler)
         {
             _failedMessageHandler = failedMessagehandler;
             return this;
         }
 
+        public IMessageConsumerBuilder<T> AndHandlesFailedMessagesUsing(Func<IMessage<T>, bool> failedMessageHandler)
+        {
+            _failedMessageHandler = new InternalFunctionMessageHandler<T>(failedMessageHandler);
+            return this;
+        }
+
         public IMessageConsumerBuilder<T> AndHandlesExceptionsUsing(IMessageExceptionHandler<T> messageExceptionHandler)
         {
             _exceptionHandler = messageExceptionHandler;
+            return this;
+        }
+
+        public IMessageConsumerBuilder<T> AndHandlesExceptionsUsing(Func<IMessage<T>, Exception, bool> messageExceptionHandler)
+        {
+            _exceptionHandler = new InternalFunctionMessageExceptionHandler<T>(messageExceptionHandler);
             return this;
         }
 

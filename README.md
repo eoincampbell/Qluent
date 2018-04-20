@@ -6,7 +6,7 @@
    - [Basic Operations](#basic-operations)
    - [Sending Messages](#sending-messages)
    - [Receiving Messages](#receiving-messages)
-   - [Receiving Messages & Controlling Deletion](#receiving-messages-controlling-deletion)
+   - [Receiving Messages and Controlling Deletion](#receiving-messages-and-controlling-deletion)
  - [Working with Queue Consumers](#working-with-queue-consumers)
    - [Creating a Consumer](#creating-a-consumer)
    - [Processing Messages](#processing-messages)
@@ -42,9 +42,9 @@ var q = await Builder
 await q.PushAsync(new Task());
 
 var consumer = Builder
-    .CreateAConsumerFor<Person>()
+    .CreateAConsumerFor<Task>()
     .UsingQueue(q)
-    .ThatHandlesMessagesUsing(new myCustomHandlerImpl())
+    .ThatHandlesMessagesUsing(new CustomHandlerImpl())
     .Build();
 
 await consumer.Start()
