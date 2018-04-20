@@ -15,15 +15,15 @@
         private CloudQueue _cloudQueue;
         private CloudQueue _poisonQueue;
 
-        private readonly IAzureStorageQueueSettings _settings;
+        private readonly IMessageConsumerSettings _settings;
         private readonly IMessageTimeoutPolicy _messageTimeoutPolicy;
         private readonly IMessageSerializer<T, string> _defaultSerializer = new DefaultMessageSerializer<T>();
         private readonly IStringMessageSerializer<T> _customStringSerializer;
         private readonly IBinaryMessageSerializer<T> _customBinarySerializer;
         private readonly IPoisonMessageBehaviorPolicy _poisonMessageBehaviorPolicy;
 
-        protected AzureStorageQueue(
-            IAzureStorageQueueSettings settings,
+        internal AzureStorageQueue(
+            IMessageConsumerSettings settings,
             IMessageTimeoutPolicy messageTimeoutPolicy,
             IPoisonMessageBehaviorPolicy poisonMessageBehaviorPolicy = null,
             IStringMessageSerializer<T> customStringSerializer = null,
@@ -37,7 +37,7 @@
         }
 
         public static async Task<AzureStorageQueue<T>> CreateAsync(
-            IAzureStorageQueueSettings settings, 
+            IMessageConsumerSettings settings, 
             IMessageTimeoutPolicy messageTimeoutPolicy,
             IPoisonMessageBehaviorPolicy poisonMessageBehaviorPolicy = null,
             IStringMessageSerializer<T> customStringSerializer = null,

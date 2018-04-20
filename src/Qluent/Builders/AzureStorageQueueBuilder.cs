@@ -2,8 +2,8 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Policies;
-    using Policies.PoisonMessageBehavior;
+    using Queues.Policies;
+    using Queues.Policies.PoisonMessageBehavior;
     using Queues;
     using Serialization;
 

@@ -15,5 +15,10 @@
         {
             return new AzureStorageQueueBuilder<T>();
         }
+
+        public static IMessageConsumerBuilder<T> CreateAMessageConsumerFor<T>()
+        {
+            return new MessageConsumerBuilder<T>();
+        }
     }
 }

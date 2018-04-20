@@ -1,6 +1,6 @@
 ﻿namespace Qluent
 {
-    using Policies.PoisonMessageBehavior;
+    using Queues.Policies.PoisonMessageBehavior;
     using Serialization;
     using System;
     using System.Threading.Tasks;
