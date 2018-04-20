@@ -33,7 +33,6 @@ namespace Qluent.NetCore.ConsumerTestHarness
 
             consumer.Start(cancellationTokenSource.Token);
 
-
             var producerQueue = await Builder
                 .CreateAQueueOf<Job>()
                 .UsingStorageQueue("my-int-queue")

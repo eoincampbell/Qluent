@@ -1,4 +1,6 @@
-﻿namespace Qluent
+﻿using System.Threading;
+
+namespace Qluent
 {
     using Queues.Policies.PoisonMessageBehavior;
     using Serialization;
@@ -20,8 +22,22 @@
         /// <summary>
         /// Asynchronoulsy builds an instance of an <see cref="IAzureStorageQueue{T}"/>
         /// </summary>
-        /// <returns>An instance of the queue</returns>
+        /// <returns>
+        /// A task which represents the asynchronous operation.
+        /// 
+        /// The result of the task contains an instance of the queue
+        /// </returns>
         Task<IAzureStorageQueue<T>> BuildAsync();
+        /// <summary>
+        /// Asynchronoulsy builds an instance of an <see cref="IAzureStorageQueue{T}" />
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// A task which represents the asynchronous operation.
+        /// 
+        /// The result of the task contains an instance of the queue
+        /// </returns>
+        Task<IAzureStorageQueue<T>> BuildAsync(CancellationToken cancellationToken);
         /// <summary>
         /// Fluently specify the account you want to connect to
         /// </summary>
