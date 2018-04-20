@@ -45,7 +45,7 @@ await q.PushAsync(new Task());
 var consumer = Builder
     .CreateAConsumerFor<Task>()
     .UsingQueue(q)
-    .ThatHandlesMessagesUsing(new CustomHandlerImpl())
+    .ThatHandlesMessagesUsing((msg) => { Console.WriteLine($"Processing {msg.Value.TaskId}"); return true; })
     .Build();
 
 await consumer.Start()
@@ -193,13 +193,13 @@ catch(Exception ex){ ... }
 
 Qluent provides a simple message consumer which you can provide with a 
 queue and configure to handle your messages. This allows you to focus on
-the message processing without worrying about the dispatcher polling logic.
+the message processing without worrying about the dispatcher/polling logic.
 
 ---
 
 ### Creating a Consumer
 
-To create a consumer, you first build a Queue, and then build a consumer using that Queue.
+To create a consumer, you first build a queue, and then build a consumer using that queue.
 
 ```csharp
 //Create Queue
@@ -214,13 +214,23 @@ var consumer = Builder
     .UsingQueue(consumerQueue)
     ...
     .Build();
+```
+
+To run the consumer, you call the `Start()` method. The polling loop can be terminated by triggering a cancellation token.
+
+```csharp
+var cancellationTokenSource = new CancellationTokenSource();
+await consumer.Start(cancellationTokenSource.Token);
+
+//later
+cancellationTokenSource.Cancel();
 ``` 
 
 ---
 
 ### Processing Messages
 
-The message consumer supports 3 different handlers for processing your messages.
+The message consumer supports 2 handlers for processing your messages.
 
 1. A message handler which describes how to process your messages
 2. A failed message handler which describes what to do when the message handler fails
@@ -237,8 +247,7 @@ var consumer = Builder
 The message handlers can be passed to the fluent api as either
 
  - a `Func<IMessage<T>, bool>` 
- or
- - as an implementation of `Qluent.Consumers.Handlers.IMessageHandler<T>`
+ - an implementation of `Qluent.Consumers.Handlers.IMessageHandler<T>`
 
 ---
 
@@ -259,9 +268,7 @@ var consumer = Builder
 The message exception handler can be passed to the fluent api as either
 
  - a `Func<IMessage<T>, Exception, bool>` 
- or
- - as an implementation of `Qluent.Consumers.Handlers.IMessageExceptionHandler<T>`
-
+ - a implementation of `Qluent.Consumers.Handlers.IMessageExceptionHandler<T>`
 
 ---
 
