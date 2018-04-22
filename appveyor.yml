@@ -20,7 +20,7 @@ dotnet_csproj:
   patch: true
   file: '**\*.csproj'
   version: '{version}-beta'
-  package_version: '{version}-beta-$(APPVEYOR_REPO_COMMIT)'
+  package_version: '{version}-beta'
   assembly_version: '{version}'
   file_version: '{version}'
   informational_version: '{version}-beta-$(APPVEYOR_REPO_COMMIT)'
@@ -46,4 +46,14 @@ test_script:
   - cmd: dotnet test
 on_finish :
   # any cleanup in here
-deploy: off
+artifacts:
+- path: artifacts\Qluent.*.nupkg
+  name: Nuget Package
+deploy: 
+- provider: NuGet
+  server: https://www.nuget.org/api/v2/package
+  api_key:
+    secure: Tckv766/8wpQ4ykqlneK0+snVYm/o4pjPXd0abDVmFtoaIEU0G1toIj7w9wNq/2l
+  artifact: Nuget Package
+  on:
+    branch: /release.*/
