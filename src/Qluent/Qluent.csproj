@@ -11,13 +11,13 @@
     <Authors>Eoin Campbell</Authors>
     <Description>A Fluent Queue Client for creating Azure Storage Queues and Consumers</Description>
     <Summary>A Fluent Queue Client for creating Azure Storage Queues and Consumers</Summary>
-    <PackageTags>azure storage, messaging, message queue, producer consumer, azure storage queue, azure, csharp library, netcore2, netframework, receive messages, message visibility, storage queue, dequeue, asynchronous, message count, pop, message poison, serialization, consumer, azure sdk</PackageTags>
+    <PackageTags>azure, azure-storage, azure-storage-queue, messaging, message-queue, producer-consumer, storage-queue, azure-sdk</PackageTags>
     <NeutralLanguage>en-US</NeutralLanguage>
     <Copyright>Copyright © 2018</Copyright>
 
     <PackageVersion>0.1.0</PackageVersion>
     <VersionPrefix></VersionPrefix>
-    <VersionSuffix>beta</VersionSuffix>
+    <VersionSuffix></VersionSuffix>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0</FileVersion>
 
