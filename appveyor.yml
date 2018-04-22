@@ -21,6 +21,7 @@ dotnet_csproj:
 before_build:
   # Display .NET Core version
   - cmd: dotnet --version
+  - cmd: cat ./src/Qluent/Qluent.csproj
   # Display minimal restore text
   - cmd: dotnet restore ./src/Qluent/Qluent.csproj --verbosity m
 build_script:
