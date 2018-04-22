@@ -40,8 +40,8 @@ test_script:
   - cmd: dotnet restore ./src/Qluent.NetCore.Tests/Qluent.NetCore.Tests.csproj --verbosity m
   # run the unit tests (requires changing into the test directory)
   - cmd: cd src
+  - ps: .\scripts\start-azure-storage-emulator.ps1
   - cmd: cd Qluent.NetCore.Tests
-  - ps: if (! (ps | ? {$_.path -eq $prog})) {& $prog}
   - cmd: dotnet test
 on_finish :
   # any cleanup in here

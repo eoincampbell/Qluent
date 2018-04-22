@@ -6,7 +6,7 @@
     public static class AzureStorageEmulatorManager
     {
         private const string WindowsAzureStorageEmulatorPath =
-            @"C:\Program Files (x86)\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe";
+            @"";
 
         private const string Win10ProcessName = "AzureStorageEmulator";
 
