@@ -2,12 +2,14 @@
 
 ## Project Status
 
-|   | Status  |
-|---|---|
-| Project | [![Build status](https://ci.appveyor.com/api/projects/status/5uwjfc79j458m4ju?svg=true)](https://ci.appveyor.com/project/eoincampbell/qluent) |
-| `Master` | [![Build status](https://ci.appveyor.com/api/projects/status/5uwjfc79j458m4ju/branch/master?svg=true)](https://ci.appveyor.com/project/eoincampbell/qluent/branch/master) |
-| `Release/v1.0.0` | |
+[![Nuget Beta][nuget-beta-badge]][nuget-beta-url]
+[![master](https://ci.appveyor.com/api/projects/status/5uwjfc79j458m4ju/branch/master?svg=true)](https://ci.appveyor.com/project/eoincampbell/qluent/branch/master) 
 
+[nuget-beta-badge]: https://img.shields.io/badge/nuget--beta-0.2.0.26--beta-blue.svg
+[nuget-beta-url]: https://www.nuget.org/packages/Qluent/
+
+[nuget-stable-badge]: https://img.shields.io/badge/nuget-0.2.0.26--beta-blue.svg
+[nuget-stable-url]: https://www.nuget.org/packages/Qluent/
 
 ## Documentation
 
@@ -549,5 +551,5 @@ Kafka, NService Bus, Mulesoft etc...)
   - NLog
   - Serilog
 - Big Documentation Tidy up
-- Nuget Packages
-- AppVeyor Setup
+- ~~Nuget Packages~~
+- ~~AppVeyor Setup~~
