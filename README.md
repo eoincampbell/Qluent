@@ -531,7 +531,12 @@ Kafka, NService Bus, Mulesoft etc...)
 - ~~Remove the TransactionScope stuff & stick it in an experimental branch~~
 - ~~Build a Sample Message Consumer~~
   - ~~Test Harness~~
-  - Logging
   - Unit Tests
   - ~~Documentation~~
   - ~~XMLDoc Comment the Public API~~
+- Logging
+  - NLog
+  - Serilog
+- Big Documentation Tidy up
+- Nuget Packages
+- AppVeyor Setup
