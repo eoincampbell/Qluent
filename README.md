@@ -1,5 +1,16 @@
 # Qluent
 
+## Project Status
+
+|   | Status  |
+|---|---|
+| Project | [![Build status](https://ci.appveyor.com/api/projects/status/5uwjfc79j458m4ju?svg=true)](https://ci.appveyor.com/project/eoincampbell/qluent) |
+| `Master` | [![Build status](https://ci.appveyor.com/api/projects/status/5uwjfc79j458m4ju/branch/master?svg=true)](https://ci.appveyor.com/project/eoincampbell/qluent/branch/master) |
+| `Release/v1.0.0` | |
+
+
+## Documentation
+
  - [What is this?](#what-is-this)
  - [Working with Queues](#working-with-queues)
    - [Creating a Queue](#creating-a-queue)

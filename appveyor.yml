@@ -1,0 +1,46 @@
+version: 0.1.0.{build}
+image: Visual Studio 2017
+branches:
+  only:
+  - master
+  - /release.*/
+  - /feature.*/
+init:
+  # Good practise, because Windows line endings are different from Unix/Linux ones
+  - cmd: git config --global core.autocrlf true
+install:
+  # Install repo specific stuff here
+assembly_info:
+  patch: true
+  file: '**\GlobalAssemblyInfo.*'
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: '{version}-beta-$(APPVEYOR_REPO_COMMIT)'
+dotnet_csproj:
+  patch: true
+  file: '**\*.csproj'
+  version: '{version}-beta'
+  package_version: '{version}-beta'
+  assembly_version: '{version}'
+  file_version: '{version}'
+  informational_version: '{version}-beta-$(APPVEYOR_REPO_COMMIT)'
+before_build:
+  # Display .NET Core version
+  - cmd: dotnet --version
+  # Display minimal restore text
+  - cmd: dotnet restore ./src/Qluent/Qluent.csproj --verbosity m
+build_script:
+  # output will be in ./src/bin/debug/netcoreapp1.1/publish
+  - cmd: dotnet publish ./src/Qluent/Qluent.csproj
+after_build:
+  # For once the build has completed
+clone_depth: 1
+#test_script:
+#  # restore packages for our unit tests
+#  - cmd: dotnet restore ./src/Qluent.NetCore.Tests/Qluent.NetCore.Tests.csproj --verbosity m
+#  # run the unit tests (requires changing into the test directory)
+#  - cmd: cd tests
+#  - cmd: dotnet nunit
+on_finish :
+  # any cleanup in here
+deploy: off
