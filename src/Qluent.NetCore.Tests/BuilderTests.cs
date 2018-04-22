@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Qluent.NetCore.Tests.Stubs;
@@ -43,7 +44,11 @@ namespace Qluent.NetCore.Tests
             var consumer = Builder
                 .CreateAMessageConsumerFor<Person>()
                 .UsingQueue(q)
-                .ThatHandlesMessagesUsing((msg) => { Console.WriteLine($"Processing {msg.Value.Name}"); return true; })
+                .ThatHandlesMessagesUsing(async (msg, ct) =>
+                {
+                    Console.WriteLine($"Processing {msg.Value.Name}");
+                    return await Task.FromResult(true);
+                })
                 .Build();
 
             Assert.IsNotNull(consumer);

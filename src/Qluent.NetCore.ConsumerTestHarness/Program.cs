@@ -62,28 +62,29 @@ namespace Qluent.NetCore.ConsumerTestHarness
             }
         }
 
-        public static bool HandleMessage(IMessage<Job> m)
+        private static async Task<bool> HandleMessage(IMessage<Job> m, CancellationToken token)
         {
             if (m.Value.Payload > 5)
             {
                 Console.WriteLine($"Success {m.Value.Payload} (Id: {m.Value.Id})");
-                return true;
+                return await Task.FromResult(true);
             }
 
             if (m.Value.Payload <= 0) throw new ArgumentException("Payload can't be less than zero. Abort Processing!");
 
-            return false;
-        }
-        public static bool HandleFailure(IMessage<Job> m)
-        {
-            Console.WriteLine($"Failed {m.Value.Payload} (Id: {m.Value.Id})");
-            return true;
+            return await Task.FromResult(false);
         }
 
-        public static bool HandleException(IMessage<Job> m, Exception ex)
+        private static async Task<bool> HandleFailure(IMessage<Job> m, CancellationToken token)
+        {
+            Console.WriteLine($"Failed {m.Value.Payload} (Id: {m.Value.Id})");
+            return await Task.FromResult(true);
+        }
+
+        private static async Task<bool> HandleException(IMessage<Job> m, Exception ex, CancellationToken token)
         {
             Console.WriteLine($"Exception {m.Value.Payload} (Id: {m.Value.Id}): {ex.Message}");
-            return true;
+            return await Task.FromResult(true);
         }
 
 

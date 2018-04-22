@@ -1,4 +1,7 @@
-﻿namespace Qluent.Builders
+﻿using System.Threading;
+using System.Threading.Tasks;
+
+namespace Qluent.Builders
 {
     using Consumers;
     using Consumers.Handlers;
@@ -30,7 +33,7 @@
             return this;
         }
 
-        public IMessageConsumerBuilder<T> ThatHandlesMessagesUsing(Func<IMessage<T>, bool> messageHandler)
+        public IMessageConsumerBuilder<T> ThatHandlesMessagesUsing(Func<IMessage<T>, CancellationToken, Task<bool>> messageHandler)
         {
             _messageHandler = new InternalFunctionMessageHandler<T>(messageHandler);
             return this;
@@ -42,7 +45,7 @@
             return this;
         }
 
-        public IMessageConsumerBuilder<T> AndHandlesFailedMessagesUsing(Func<IMessage<T>, bool> failedMessageHandler)
+        public IMessageConsumerBuilder<T> AndHandlesFailedMessagesUsing(Func<IMessage<T>, CancellationToken, Task<bool>> failedMessageHandler)
         {
             _failedMessageHandler = new InternalFunctionMessageHandler<T>(failedMessageHandler);
             return this;
@@ -54,7 +57,7 @@
             return this;
         }
 
-        public IMessageConsumerBuilder<T> AndHandlesExceptionsUsing(Func<IMessage<T>, Exception, bool> messageExceptionHandler)
+        public IMessageConsumerBuilder<T> AndHandlesExceptionsUsing(Func<IMessage<T>, Exception, CancellationToken, Task<bool>> messageExceptionHandler)
         {
             _exceptionHandler = new InternalFunctionMessageExceptionHandler<T>(messageExceptionHandler);
             return this;

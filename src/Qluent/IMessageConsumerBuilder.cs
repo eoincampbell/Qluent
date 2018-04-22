@@ -1,4 +1,7 @@
-﻿namespace Qluent
+﻿using System.Threading;
+using System.Threading.Tasks;
+
+namespace Qluent
 {
     using System;
     using Consumers.Handlers;
@@ -44,19 +47,19 @@
         /// </summary>
         /// <param name="messageHandler">The message handler.</param>
         /// <returns>This builde instance</returns>
-        IMessageConsumerBuilder<T> ThatHandlesMessagesUsing(Func<IMessage<T>, bool> messageHandler);
+        IMessageConsumerBuilder<T> ThatHandlesMessagesUsing(Func<IMessage<T>, CancellationToken, Task<bool>> messageHandler);
         /// <summary>
         /// Fluently specifiy the handler for a message when processing fails 
         /// </summary>
         /// <param name="failedMessagehandler">The failed messagehandler.</param>
         /// <returns>This builde instance</returns>
-        IMessageConsumerBuilder<T> AndHandlesFailedMessagesUsing(Func<IMessage<T>, bool> failedMessagehandler);
+        IMessageConsumerBuilder<T> AndHandlesFailedMessagesUsing(Func<IMessage<T>, CancellationToken, Task<bool>> failedMessagehandler);
         /// <summary>
         /// Fluently specifiy the handler for scenarios when processing causes an exception
         /// </summary>
         /// <param name="messageExceptionHandler">The message exception handler.</param>
         /// <returns>This builde instance</returns>
-        IMessageConsumerBuilder<T> AndHandlesExceptionsUsing(Func<IMessage<T>, Exception, bool> messageExceptionHandler);
+        IMessageConsumerBuilder<T> AndHandlesExceptionsUsing(Func<IMessage<T>, Exception, CancellationToken, Task<bool>> messageExceptionHandler);
         /// <summary>
         /// Fluently specifiy the QueuePollingPolicy to be used
         /// </summary>
