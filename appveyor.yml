@@ -20,7 +20,7 @@ dotnet_csproj:
   patch: true
   file: '**\*.csproj'
   version: '{version}-beta'
-  package_version: '{version}-beta'
+  package_version: '{version}-beta-$(APPVEYOR_REPO_COMMIT)'
   assembly_version: '{version}'
   file_version: '{version}'
   informational_version: '{version}-beta-$(APPVEYOR_REPO_COMMIT)'
