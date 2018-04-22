@@ -146,13 +146,13 @@ namespace Qluent.NetCore.Tests
             var person = Person.Create();
             await personQueue.PurgeAsync();
             await personQueue.PushAsync(person);
-            Assert.AreEqual(1, await personQueue.CountAsync());
+            Assert.AreEqual(1, await personQueue.CountAsync(), "Person count is incorrect");
 
 
             var jobQueue = Builder
                 .CreateAQueueOf<Job>()
                 .UsingStorageQueue("my-test-queue")
-                .ThatKeepsMessagesInvisibleAfterDequeuingFor(TimeSpan.FromMilliseconds(500))
+                .ThatKeepsMessagesInvisibleAfterDequeuingFor(TimeSpan.FromMilliseconds(250))
                 .ThatConsidersMessagesPoisonAfter(3)
                 .AndSendsPoisonMessagesTo("my-poison-queue")
                 .AndHandlesExceptionsOnPoisonMessages(By.SwallowingExceptions)
@@ -160,17 +160,17 @@ namespace Qluent.NetCore.Tests
 
             var nullJob = await jobQueue.PopAsync();
             Assert.IsNull(nullJob);
-            Assert.AreEqual(0, await poisonQueue.CountAsync());
+            Assert.AreEqual(0, await poisonQueue.CountAsync(), "Poison queue first check count was wrong");
             await Task.Delay(1000);
 
             nullJob = await jobQueue.PopAsync();
             Assert.IsNull(nullJob);
-            Assert.AreEqual(0, await poisonQueue.CountAsync());
+            Assert.AreEqual(0, await poisonQueue.CountAsync(), "Poison queue second check count was wrong");
             await Task.Delay(1000);
 
             nullJob = await jobQueue.PopAsync();
             Assert.IsNull(nullJob);
-            Assert.AreEqual(1, await poisonQueue.CountAsync());
+            Assert.AreEqual(1, await poisonQueue.CountAsync(), "Poison queue third check count was wrong");
         }
     }
 }

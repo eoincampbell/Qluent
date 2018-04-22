@@ -32,9 +32,9 @@ before_build:
 build_script:
   # output will be in ./src/bin/debug/netcoreapp1.1/publish
   - cmd: dotnet publish ./src/Qluent/Qluent.csproj -c Release
-after_build:
- 
   - cmd: dotnet pack ./src/Qluent/Qluent.csproj --no-build -c Release --output artifacts
+after_build:
+  cmd: echo "Woot!"
 clone_depth: 1
 test_script:
   # restore packages for our unit tests

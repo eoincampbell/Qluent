@@ -13,7 +13,7 @@ namespace Qluent.NetCore.Tests
             var q = Builder
                 .CreateAQueueOf<Guid>()
                 .UsingStorageQueue("my-test-queue")
-                .ThatKeepsMessagesInvisibleAfterDequeuingFor(TimeSpan.FromSeconds(2))
+                .ThatKeepsMessagesInvisibleAfterDequeuingFor(TimeSpan.FromSeconds(1))
                 .Build();
 
             var guid = Guid.NewGuid();
@@ -23,7 +23,7 @@ namespace Qluent.NetCore.Tests
 
             var p1 = await q.GetAsync();
             
-            await Task.Delay(2000);
+            await Task.Delay(1200);
 
             var p2 = await q.GetAsync();
             Assert.AreEqual(p1.Value, p2.Value);

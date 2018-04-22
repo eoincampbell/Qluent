@@ -14,7 +14,7 @@ namespace Qluent.NetCore.Tests
             var q = Builder
                 .CreateAQueueOf<Person>()
                 .UsingStorageQueue("my-test-queue")
-                .ThatDelaysMessageVisibilityAfterEnqueuingFor(TimeSpan.FromSeconds(3))
+                .ThatDelaysMessageVisibilityAfterEnqueuingFor(TimeSpan.FromSeconds(1))
                 .Build();
 
             var person = Person.Create();
@@ -24,7 +24,7 @@ namespace Qluent.NetCore.Tests
 
             var p1 = await q.PopAsync();
             Assert.IsNull(p1);
-            await Task.Delay(3000);
+            await Task.Delay(1200);
 
             var p2 = await q.PopAsync();
             Assert.IsNotNull(p2);
@@ -47,7 +47,7 @@ namespace Qluent.NetCore.Tests
             await q.PushAsync(g);
 
             var message1 = await q.GetAsync();
-            await Task.Delay(2000);
+            await Task.Delay(1200);
             var message2 = await q.GetAsync();
 
             Assert.AreEqual(message1.Value, message2.Value);
@@ -69,7 +69,7 @@ namespace Qluent.NetCore.Tests
 
             var p1 = await q.PeekAsync();
             Assert.IsNotNull(p1);
-            await Task.Delay(3000);
+            await Task.Delay(1200);
 
             var p2 = await q.PeekAsync();
             Assert.IsNull(p2);
