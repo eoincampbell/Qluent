@@ -3,27 +3,31 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7.2</LangVersion>
-    <Authors>Eoin Campbell</Authors>
-    <PackageLicenseUrl>https://github.com/eoincampbell/Qluent/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>http://github.com/eoincampbell/Qluent/</PackageProjectUrl>
-    <RepositoryUrl>http://github.com/eoincampbell/Qluent/</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>azure storage, messaging, message queue, producer consumer, azure storage queue, azure, csharp library, netcore2, netframework, receive messages, message visibility, storage queue, dequeue, asynchronous, message count, pop, message poison, serialization, consumer, azure sdk</PackageTags>
-    <VersionPrefix>0.1.0</VersionPrefix>
-    <VersionSuffix>beta</VersionSuffix>
-    <Summary>Json.NET is a popular high-performance JSON framework for .NET</Summary>
-    <NeutralLanguage>en-US</NeutralLanguage>
-    <Title>Json.NET</Title>
-    <Copyright>Copyright © 2018</Copyright>
-    <Description>A Fluent Queue Client for creating Azure Storage Queues and Consumers</Description>
-    <Summary>A Fluent Queue Client for creating Azure Storage Queues and Consumers</Summary>
-    <AssemblyVersion>0.1.0.0</AssemblyVersion>
-    <FileVersion>0.1.0</FileVersion>
-    <Product>Qluent</Product>
-    <NeutralLanguage>en-US</NeutralLanguage>
+
     <Title>Qluent</Title>
     <PackageId>Qluent</PackageId>
+    <Product>Qluent</Product>
+
+    <Authors>Eoin Campbell</Authors>
+    <Description>A Fluent Queue Client for creating Azure Storage Queues and Consumers</Description>
+    <Summary>A Fluent Queue Client for creating Azure Storage Queues and Consumers</Summary>
+    <PackageTags>azure storage, messaging, message queue, producer consumer, azure storage queue, azure, csharp library, netcore2, netframework, receive messages, message visibility, storage queue, dequeue, asynchronous, message count, pop, message poison, serialization, consumer, azure sdk</PackageTags>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <Copyright>Copyright © 2018</Copyright>
+
+    <PackageVersion>0.1.0</PackageVersion>
+    <VersionPrefix></VersionPrefix>
+    <VersionSuffix>beta</VersionSuffix>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0</FileVersion>
+
     <PackageIconUrl></PackageIconUrl>
+    <PackageLicenseUrl>https://github.com/eoincampbell/Qluent/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>http://github.com/eoincampbell/Qluent/</PackageProjectUrl>
+    
+    <RepositoryUrl>http://github.com/eoincampbell/Qluent/</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    
     <RootNamespace>Qluent</RootNamespace>
     <AssemblyName>Qluent</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
