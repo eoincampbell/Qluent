@@ -35,12 +35,13 @@ build_script:
 after_build:
   # For once the build has completed
 clone_depth: 1
-#test_script:
-#  # restore packages for our unit tests
-#  - cmd: dotnet restore ./src/Qluent.NetCore.Tests/Qluent.NetCore.Tests.csproj --verbosity m
-#  # run the unit tests (requires changing into the test directory)
-#  - cmd: cd tests
-#  - cmd: dotnet nunit
+test_script:
+  # restore packages for our unit tests
+  - cmd: dotnet restore ./src/Qluent.NetCore.Tests/Qluent.NetCore.Tests.csproj --verbosity m
+  # run the unit tests (requires changing into the test directory)
+  - cmd: cd src
+  - cmd: cd Qluent.NetCore.Tests
+  - cmd: dotnet test
 on_finish :
   # any cleanup in here
 deploy: off
