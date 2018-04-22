@@ -16,6 +16,7 @@
     <Copyright>Copyright © 2018</Copyright>
 
     <PackageVersion>0.1.0</PackageVersion>
+    <Version>1.0.0</Version>
     <VersionPrefix></VersionPrefix>
     <VersionSuffix></VersionSuffix>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
@@ -33,7 +34,6 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageReleaseNotes>Support for Basic Queue Operations
 Support for Consumer</PackageReleaseNotes>
-    <Version>1.0.0</Version>
 
   </PropertyGroup>
 
