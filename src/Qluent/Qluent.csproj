@@ -18,8 +18,8 @@
     <PackageVersion>0.1.0</PackageVersion>
     <VersionPrefix></VersionPrefix>
     <VersionSuffix>beta</VersionSuffix>
-    <AssemblyVersion>0.1.0.0</AssemblyVersion>
-    <FileVersion>0.1.0</FileVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
 
     <PackageIconUrl></PackageIconUrl>
     <PackageLicenseUrl>https://github.com/eoincampbell/Qluent/blob/master/LICENSE</PackageLicenseUrl>
@@ -31,11 +31,15 @@
     <RootNamespace>Qluent</RootNamespace>
     <AssemblyName>Qluent</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReleaseNotes>Support for Basic Queue Operations
+Support for Consumer</PackageReleaseNotes>
+    <Version>1.0.0</Version>
 
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="NLog" Version="4.5.3" />
     <PackageReference Include="WindowsAzure.Storage" Version="9.1.1" />
   </ItemGroup>
 

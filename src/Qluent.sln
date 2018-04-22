@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Qluent", "Qluent\Qluent.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Qluent.NetCore.Tests", "Qluent.NetCore.Tests\Qluent.NetCore.Tests.csproj", "{97F9F112-433C-4EEE-9195-5AF14E4BA957}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{81A17AC0-5051-40F5-BDCA-2530DA283926}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solution Items", "{81A17AC0-5051-40F5-BDCA-2530DA283926}"
 	ProjectSection(SolutionItems) = preProject
 		..\.gitattributes = ..\.gitattributes
 		..\.gitignore = ..\.gitignore
@@ -18,6 +18,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Qluent.NetCore.ConsumerTestHarness", "Qluent.NetCore.ConsumerTestHarness\Qluent.NetCore.ConsumerTestHarness.csproj", "{5A94D32F-1AB3-4A3F-9F31-E3075A22AC27}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{1ABE625A-107C-46E3-836E-D5131C77ECAD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Testing", "Testing", "{8E91B1A7-1DA4-43F3-AF2B-1EDAB42A46AD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,6 +44,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E7F04B34-BECC-4EBC-AC0F-C11803009A9D} = {1ABE625A-107C-46E3-836E-D5131C77ECAD}
+		{97F9F112-433C-4EEE-9195-5AF14E4BA957} = {8E91B1A7-1DA4-43F3-AF2B-1EDAB42A46AD}
+		{5A94D32F-1AB3-4A3F-9F31-E3075A22AC27} = {8E91B1A7-1DA4-43F3-AF2B-1EDAB42A46AD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {678BDD58-6750-46DB-9060-CF1E0C3ECC5F}

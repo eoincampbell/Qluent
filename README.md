@@ -73,7 +73,6 @@ await consumer.Start()
 
 ## Working with Queues
 
----
 
 ### Creating a Queue
 
@@ -292,7 +291,11 @@ The message exception handler can be passed to the fluent api as either
 
 ### Consumer Settings
 
-The consumer supports a number of other settings as well. While polling an empty
+The consumer supports a number of other settings as well. 
+
+
+
+While polling an empty
 queue the Consumer can be configured how often to re-poll while waiting. By default
 the consumer will requery the queue every 5 seconds.
 
@@ -316,7 +319,10 @@ var consumer = Builder
 
 ### Logging
 
-//TODO
+The consumer supports very basic logging using NLog.
+
+Simply configure NLog as you typically would (specifying targets, formats and filter rules) and the consumer will output 
+messages on progress including startup, shutdown, handler execution & exception messages.
 
 ---
 

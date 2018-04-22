@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
 using Qluent.Consumers.Policies;
 using Qluent.Queues.Policies.PoisonMessageBehavior;
 
@@ -10,6 +13,15 @@ namespace Qluent.NetCore.ConsumerTestHarness
     {
         public static async Task Main(string[] args)
         {
+            var config = new LoggingConfiguration();
+
+            var consoleTarget = new ColoredConsoleTarget();
+            config.AddTarget("console", consoleTarget);
+            consoleTarget.Layout = @"${date:format=HH\:mm\:ss} ${logger} ${message}";
+            var rule1 = new LoggingRule("*", LogLevel.Debug, consoleTarget);
+            config.LoggingRules.Add(rule1);
+            LogManager.Configuration = config;
+
             //Cancellation Token
             var cancellationTokenSource = new CancellationTokenSource();
 
@@ -27,15 +39,17 @@ namespace Qluent.NetCore.ConsumerTestHarness
                 .UsingQueue(consumerQueue)
                 .ThatHandlesMessagesUsing(HandleMessage)
                 .AndHandlesFailedMessagesUsing(HandleFailure)
-                .AndHandlesExceptionsUsing(HandleException)
+                .AndHandlesMessageExceptionsUsing(HandleException)
                 .WithAQueuePolingPolicyOf(new SetIntervalQueuePolingPolicy(10000))
+                .WithAnIdOf("my-custom-id")
+                .AndHandlesExceptions(Consumers.Policies.ConsumerExceptionBehavior.By.Continuing)
                 .Build();
 
             consumer.Start(cancellationTokenSource.Token);
 
             var producerQueue = await Builder
                 .CreateAQueueOf<Job>()
-                .UsingStorageQueue("my-int-queue")
+                .UsingStorageQueue("my-job-queue")
                 .BuildAsync(cancellationTokenSource.Token);
 
             RunProducer(producerQueue, cancellationTokenSource.Token);
@@ -66,7 +80,7 @@ namespace Qluent.NetCore.ConsumerTestHarness
         {
             if (m.Value.Payload > 5)
             {
-                Console.WriteLine($"Success {m.Value.Payload} (Id: {m.Value.Id})");
+                Console.WriteLine($"         HANDLER: Success Id: {m.Value.Id}");
                 return await Task.FromResult(true);
             }
 
@@ -77,13 +91,13 @@ namespace Qluent.NetCore.ConsumerTestHarness
 
         private static async Task<bool> HandleFailure(IMessage<Job> m, CancellationToken token)
         {
-            Console.WriteLine($"Failed {m.Value.Payload} (Id: {m.Value.Id})");
+            Console.WriteLine($"         HANDLER FAILED: Id: {m.Value.Id}");
             return await Task.FromResult(true);
         }
 
         private static async Task<bool> HandleException(IMessage<Job> m, Exception ex, CancellationToken token)
         {
-            Console.WriteLine($"Exception {m.Value.Payload} (Id: {m.Value.Id}): {ex.Message}");
+            Console.WriteLine($"         EXCEPTION Id: {m.Value.Id}: {ex.Message}");
             return await Task.FromResult(true);
         }
 
