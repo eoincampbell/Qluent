@@ -12,7 +12,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\.gitattributes = ..\.gitattributes
 		..\.gitignore = ..\.gitignore
 		..\appveyor.yml = ..\appveyor.yml
-		GlobalAssemblyInfo.cs = GlobalAssemblyInfo.cs
 		..\LICENSE = ..\LICENSE
 		..\README.md = ..\README.md
 		scripts\start-azure-storage-emulator.ps1 = scripts\start-azure-storage-emulator.ps1
