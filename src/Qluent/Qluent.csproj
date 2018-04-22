@@ -4,6 +4,15 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7.2</LangVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Authors>Eoin Campbell</Authors>
+    <PackageLicenseUrl>https://github.com/eoincampbell/Qluent/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>http://github.com/eoincampbell/Qluent/</PackageProjectUrl>
+    <RepositoryUrl>http://github.com/eoincampbell/Qluent/</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>azure storage, messaging, message queue, producer consumer, azure storage queue, azure, csharp library, netcore2, netframework, receive messages, message visibility, storage queue, dequeue, asynchronous, message count, pop, message poison, serialization, consumer, azure sdk</PackageTags>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix>beta</VersionSuffix>
   </PropertyGroup>
 
   <ItemGroup>
