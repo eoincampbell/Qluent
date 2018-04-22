@@ -57,6 +57,9 @@
     <Reference Include="System.Transactions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\GlobalAssemblyInfo.cs">
+      <Link>Properties\GlobalAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="GetAndDeleteTests.cs" />
     <Compile Include="MessageVisibilityTests.cs" />
     <Compile Include="PoisonMessageTests.cs" />

@@ -1,22 +1,23 @@
 ﻿namespace Qluent.Builders
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
-    using Policies;
-    using Policies.PoisonMessageBehavior;
+    using Queues.Policies;
+    using Queues.Policies.PoisonMessageBehavior;
     using Queues;
     using Serialization;
 
     internal class AzureStorageQueueBuilder<T> : IAzureStorageQueueBuilder<T>
     {
-        private readonly IAzureStorageQueueSettings _settings;
+        private readonly IMessageConsumerSettings _settings;
         private readonly IMessageTimeoutPolicy _messageTimeoutPolicy;
         private readonly IPoisonMessageBehaviorPolicy _poisonMessageBehaviorPolicy;
 
         private IStringMessageSerializer<T> _customStringSerializer;
         private IBinaryMessageSerializer<T> _customBinarySerializer;
 
-        public AzureStorageQueueBuilder()
+        internal AzureStorageQueueBuilder()
         {
             _settings = new AzureStorageQueueSettings();
             _messageTimeoutPolicy = new MessageTimeoutPolicy();
@@ -27,21 +28,36 @@
 
         public IAzureStorageQueue<T> Build()
         {
-            return AzureStorageQueue<T>.CreateAsync(_settings,
-                            _messageTimeoutPolicy,
-                            _poisonMessageBehaviorPolicy,
-                            _customStringSerializer,
-                            _customBinarySerializer).Result;
+            return AzureStorageQueue<T>
+                .CreateAsync(_settings,
+                    _messageTimeoutPolicy,
+                    _poisonMessageBehaviorPolicy,
+                    _customStringSerializer,
+                    _customBinarySerializer)
+                .Result;
         }
 
         public async Task<IAzureStorageQueue<T>> BuildAsync()
         {
-            return await AzureStorageQueue<T>.CreateAsync(_settings,
-                            _messageTimeoutPolicy,
-                            _poisonMessageBehaviorPolicy,
-                            _customStringSerializer,
-                            _customBinarySerializer)
-                            .ConfigureAwait(false);
+            return await AzureStorageQueue<T>
+                .CreateAsync(_settings,
+                    _messageTimeoutPolicy,
+                    _poisonMessageBehaviorPolicy,
+                    _customStringSerializer,
+                    _customBinarySerializer)
+                .ConfigureAwait(false);
+        }
+
+        public async Task<IAzureStorageQueue<T>> BuildAsync(CancellationToken cancellationToken)
+        {
+            return await AzureStorageQueue<T>
+                .CreateAsync(_settings,
+                    _messageTimeoutPolicy,
+                    _poisonMessageBehaviorPolicy,
+                    _customStringSerializer,
+                    _customBinarySerializer,
+                    cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public IAzureStorageQueueBuilder<T> ConnectedToAccount(string connectionString)

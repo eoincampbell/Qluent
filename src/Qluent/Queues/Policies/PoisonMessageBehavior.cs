@@ -1,5 +1,5 @@
 ﻿// ReSharper disable once CheckNamespace
-namespace Qluent.Policies.PoisonMessageBehavior
+namespace Qluent.Queues.Policies.PoisonMessageBehavior
 {
     /// <summary>
     /// An enumeration that specifies whether exceptions should be thrown or swallowed when a poison message is identified

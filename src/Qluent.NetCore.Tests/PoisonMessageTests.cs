@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using NUnit.Framework;
 using Qluent.NetCore.Tests.Stubs;
-using Qluent.Policies.PoisonMessageBehavior;
+using Qluent.Queues.Policies.PoisonMessageBehavior;
 using System;
 using System.Threading.Tasks;
 using Qluent.NetCore.Tests.Serializers;

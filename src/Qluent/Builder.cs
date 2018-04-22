@@ -15,5 +15,15 @@
         {
             return new AzureStorageQueueBuilder<T>();
         }
+
+        /// <summary>
+        /// Initializes a <see cref="IMessageConsumerBuilder{T}" /> for creating an <see cref="IMessageConsumer{T}"/>
+        /// </summary>
+        /// <typeparam name="T">The object</typeparam>
+        /// <returns>The MessageConsumerBulder</returns>
+        public static IMessageConsumerBuilder<T> CreateAMessageConsumerFor<T>()
+        {
+            return new MessageConsumerBuilder<T>();
+        }
     }
 }

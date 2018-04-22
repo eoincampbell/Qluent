@@ -1,22 +1,28 @@
 # Qluent
 
- - [What is this?]
- - [How do I use it?]
-   - [Creating a Qluent Queue]
-   - [Basic Operations]
-   - [Sending Messages]
-   - [Receiving Messages]
-   - [Receiving Messages & Controlling Deletion]
- - [Advanced Features]
-   - [Message Visibility]
-   - [Handling Poison Messages]
-   - [Customising Serialization]
-   - [Asynchronous Model]
- - [Background]
-   - [Why do I need this?]
-   - [Why did you build this?]
-   - [What is this not?]
-   - [Todo List]
+ - [What is this?](#what-is-this)
+ - [Working with Queues](#working-with-queues)
+   - [Creating a Queue](#creating-a-queue)
+   - [Basic Operations](#basic-operations)
+   - [Sending Messages](#sending-messages)
+   - [Receiving Messages](#receiving-messages)
+   - [Receiving Messages and Controlling Deletion](#receiving-messages-and-controlling-deletion)
+ - [Working with Queue Consumers](#working-with-queue-consumers)
+   - [Creating a Consumer](#creating-a-consumer)
+   - [Processing Messages](#processing-messages)
+   - [Handling Exceptions](#handling-exceptions)
+   - [Consumer Settings](#consumer-settings)
+   - [Logging](#Logging)
+ - [Advanced Features](#advanced-features)
+   - [Message Visibility](#message-visibility)
+   - [Handling Poison Messages](#handling-poison-messages)
+   - [Customising Serialization](#customising-serialization)
+   - [Asynchronous Model](#asynchronous-model)
+ - [Background](#background)
+   - [Why do I need this?](#why-do-i-need-this)
+   - [Why did you build this?](#why-did-you-build-this)
+   - [What is this not?](#what-is-this-not)
+   - [Todo List](#todo-list)
 
 ---
 
@@ -30,18 +36,28 @@ strongly typed objects like this.
 
 ```csharp
 var q = await Builder
-    .CreateAQueueOf<Person>()
+    .CreateAQueueOf<Task>()
     .UsingStorageQueue("my-test-queue")
     .BuildAsync();
     
-var person = await q.PopAsync();
+await q.PushAsync(new Task());
+
+var consumer = Builder
+    .CreateAConsumerFor<Task>()
+    .UsingQueue(q)
+    .ThatHandlesMessagesUsing((msg) => { Console.WriteLine($"Processing {msg.Value.TaskId}"); return true; })
+    .Build();
+
+await consumer.Start()
 ```
 
 ---
 
-## How do I use it?
+## Working with Queues
 
-### Creating a Qluent Queue
+---
+
+### Creating a Queue
 
 By default the builder will create a queue connected to development storage.
 
@@ -173,7 +189,125 @@ catch(Exception ex){ ... }
 
 ---
 
+## Working with Queue Consumers
+
+Qluent provides a simple message consumer which you can provide with a 
+queue and configure to handle your messages. This allows you to focus on
+the message processing without worrying about the dispatcher/polling logic.
+
+---
+
+### Creating a Consumer
+
+To create a consumer, you first build a queue, and then build a consumer using that queue.
+
+```csharp
+//Create Queue
+var consumerQueue = await Builder
+    .CreateAQueueOf<Job>()
+    .UsingStorageQueue("my-job-queue")
+    .BuildAsync();
+
+//Create Consumer
+var consumer = Builder
+    .CreateAMessageConsumerFor<Job>()
+    .UsingQueue(consumerQueue)
+    ...
+    .Build();
+```
+
+To run the consumer, you call the `Start()` method. The polling loop can be terminated by triggering a cancellation token.
+
+```csharp
+var cancellationTokenSource = new CancellationTokenSource();
+await consumer.Start(cancellationTokenSource.Token);
+
+//later
+cancellationTokenSource.Cancel();
+``` 
+
+---
+
+### Processing Messages
+
+The message consumer supports 2 handlers for processing your messages.
+
+1. A message handler which describes how to process your messages
+2. A failed message handler which describes what to do when the message handler fails
+
+```csharp
+var consumer = Builder
+    .CreateAMessageConsumerFor<Job>()
+    .UsingQueue(consumerQueue)
+    .ThatHandlesMessagesUsing(HandleMessage)
+    .AndHandlesFailedMessagesUsing(HandleFailure)
+    .Build();
+``` 
+
+The message handlers can be passed to the fluent api as either
+
+ - a `Func<IMessage<T>, bool>` 
+ - an implementation of `Qluent.Consumers.Handlers.IMessageHandler<T>`
+
+---
+
+### Handling Exceptions
+
+In the event the main message handler throws an exception, 
+a special handler is available for post-processing messages.
+
+```csharp
+var consumer = Builder
+    .CreateAMessageConsumerFor<Job>()
+    .UsingQueue(consumerQueue)
+    ...
+    .AndHandlesExceptionsUsing(HandleException)
+    .Build();
+``` 
+
+The message exception handler can be passed to the fluent api as either
+
+ - a `Func<IMessage<T>, Exception, bool>` 
+ - a implementation of `Qluent.Consumers.Handlers.IMessageExceptionHandler<T>`
+
+---
+
+### Consumer Settings
+
+The consumer supports a number of other settings as well. While polling an empty
+queue the Consumer can be configured how often to re-poll while waiting. By default
+the consumer will requery the queue every 5 seconds.
+
+You can override this behavior by providing a custom `Qluent.Consumers.Policies.IMessageConsumerQueuePollingPolicy`
+
+The library provides 2 built in policies
+
+ - `SetIntervalQueuePollingPolicy` which specifies a set number of seconds between polls
+ - `BackOffQueuePolingPolicy` which backs off the poling frequency by doubling the interval from 1 second to 60 seconds               
+
+```csharp
+var consumer = Builder
+    .CreateAMessageConsumerFor<Job>()
+    .UsingQueue(consumerQueue)
+    ...
+    .WithAQueuePolingPolicyOf(new SetIntervalQueuePolingPolicy(5))
+    .Build();
+```
+
+---
+
+### Logging
+
+//TODO
+
+---
+
 ## Advanced Features
+
+The `IAzureStorageQueue` Builder supports a number of other advanced features that let
+you control the more common aspects of StorageQueues without having to dive into the SDK.
+
+---
 
 ### Message Visibility
 
@@ -320,13 +454,6 @@ var q = Builder
 
 ---
 
-### Logging
-
-//Todo
-
-
----
-
 ## Background
 
 ### Why do I need this?
@@ -402,4 +529,9 @@ Kafka, NService Bus, Mulesoft etc...)
 - ~~Write up the docs around message visibility when the above is done~~
 - ~~.NET Core Tests~~
 - ~~Remove the TransactionScope stuff & stick it in an experimental branch~~
-- Build a Sample Message Consumer
+- ~~Build a Sample Message Consumer~~
+  - ~~Test Harness~~
+  - Logging
+  - Unit Tests
+  - ~~Documentation~~
+  - ~~XMLDoc Comment the Public API~~

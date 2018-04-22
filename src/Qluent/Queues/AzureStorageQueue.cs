@@ -15,15 +15,15 @@
         private CloudQueue _cloudQueue;
         private CloudQueue _poisonQueue;
 
-        private readonly IAzureStorageQueueSettings _settings;
+        private readonly IMessageConsumerSettings _settings;
         private readonly IMessageTimeoutPolicy _messageTimeoutPolicy;
         private readonly IMessageSerializer<T, string> _defaultSerializer = new DefaultMessageSerializer<T>();
         private readonly IStringMessageSerializer<T> _customStringSerializer;
         private readonly IBinaryMessageSerializer<T> _customBinarySerializer;
         private readonly IPoisonMessageBehaviorPolicy _poisonMessageBehaviorPolicy;
 
-        protected AzureStorageQueue(
-            IAzureStorageQueueSettings settings,
+        internal AzureStorageQueue(
+            IMessageConsumerSettings settings,
             IMessageTimeoutPolicy messageTimeoutPolicy,
             IPoisonMessageBehaviorPolicy poisonMessageBehaviorPolicy = null,
             IStringMessageSerializer<T> customStringSerializer = null,
@@ -37,11 +37,27 @@
         }
 
         public static async Task<AzureStorageQueue<T>> CreateAsync(
-            IAzureStorageQueueSettings settings, 
+            IMessageConsumerSettings settings,
             IMessageTimeoutPolicy messageTimeoutPolicy,
-            IPoisonMessageBehaviorPolicy poisonMessageBehaviorPolicy = null,
-            IStringMessageSerializer<T> customStringSerializer = null,
-            IBinaryMessageSerializer<T> customBinarySerializer = null)
+            IPoisonMessageBehaviorPolicy poisonMessageBehaviorPolicy,
+            IStringMessageSerializer<T> customStringSerializer,
+            IBinaryMessageSerializer<T> customBinarySerializer)
+        {
+            return await CreateAsync(settings,
+                messageTimeoutPolicy,
+                poisonMessageBehaviorPolicy,
+                customStringSerializer,
+                customBinarySerializer,
+                CancellationToken.None);
+        }
+
+        public static async Task<AzureStorageQueue<T>> CreateAsync(
+            IMessageConsumerSettings settings, 
+            IMessageTimeoutPolicy messageTimeoutPolicy,
+            IPoisonMessageBehaviorPolicy poisonMessageBehaviorPolicy,
+            IStringMessageSerializer<T> customStringSerializer,
+            IBinaryMessageSerializer<T> customBinarySerializer,
+            CancellationToken cancellationToken)
         {
 
             var queue = new AzureStorageQueue<T>(settings,
@@ -51,13 +67,13 @@
                             customBinarySerializer);
 
             await queue
-                .InstantiateQueues()
+                .InstantiateQueues(cancellationToken)
                 .ConfigureAwait(false);
 
             return queue;
         }
 
-        protected async Task InstantiateQueues()
+        protected async Task InstantiateQueues(CancellationToken cancellationToken)
         {
             var cloudStorageAccount = CloudStorageAccount.Parse(_settings.ConnectionString);
             var cloudQueueClient = cloudStorageAccount.CreateCloudQueueClient();
@@ -65,7 +81,7 @@
             _cloudQueue = cloudQueueClient.GetQueueReference(_settings.StorageQueueName);
 
             await _cloudQueue
-                .CreateIfNotExistsAsync()
+                .CreateIfNotExistsAsync(null, null, cancellationToken)
                 .ConfigureAwait(false);
             
             if(_poisonMessageBehaviorPolicy != null && 
@@ -74,7 +90,7 @@
                 _poisonQueue = cloudQueueClient.GetQueueReference(_poisonMessageBehaviorPolicy.PoisonMessageStorageQueueName);
 
                 await _poisonQueue
-                    .CreateIfNotExistsAsync()
+                    .CreateIfNotExistsAsync(null, null, cancellationToken)
                     .ConfigureAwait(false);
             }
         }

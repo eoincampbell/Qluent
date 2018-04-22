@@ -1,15 +1,15 @@
 ﻿namespace Qluent
 {
-    using Policies.PoisonMessageBehavior;
+    using Queues.Policies.PoisonMessageBehavior;
     using Serialization;
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Fluent API Builder
+    /// Fluent API Builder for creating an <see cref="IAzureStorageQueue{T}" />
     /// </summary>
-    /// <typeparam name="T">The object type</typeparam>
-    /// <seealso cref="Qluent.IAzureStorageQueueBuilder{T}" />
+    /// <typeparam name="T">The object type of the queue's message payload</typeparam>
     public interface IAzureStorageQueueBuilder<T>
     {
         /// <summary>
@@ -20,8 +20,22 @@
         /// <summary>
         /// Asynchronoulsy builds an instance of an <see cref="IAzureStorageQueue{T}"/>
         /// </summary>
-        /// <returns>An instance of the queue</returns>
+        /// <returns>
+        /// A task which represents the asynchronous operation.
+        /// 
+        /// The result of the task contains an instance of the queue
+        /// </returns>
         Task<IAzureStorageQueue<T>> BuildAsync();
+        /// <summary>
+        /// Asynchronoulsy builds an instance of an <see cref="IAzureStorageQueue{T}" />
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// A task which represents the asynchronous operation.
+        /// 
+        /// The result of the task contains an instance of the queue
+        /// </returns>
+        Task<IAzureStorageQueue<T>> BuildAsync(CancellationToken cancellationToken);
         /// <summary>
         /// Fluently specify the account you want to connect to
         /// </summary>

@@ -1,7 +1,6 @@
 ﻿namespace Qluent.Messages
 {
-    
-    public class Message<T> : IMessage<T>
+    internal class Message<T> : IMessage<T>
     {
         internal Message(string messageId, string popReceipt, T value)
         {

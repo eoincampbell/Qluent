@@ -1,4 +1,4 @@
-﻿namespace Qluent.Policies
+﻿namespace Qluent.Queues.Policies
 {
     using System;
 
