@@ -34,7 +34,7 @@ build_script:
   - cmd: dotnet publish ./src/Qluent/Qluent.csproj -c Release
 after_build:
  
-  - cmd: dotnet pack ./src/Qluent/Qluent.csproj --no-build --output artifacts
+  - cmd: dotnet pack ./src/Qluent/Qluent.csproj --no-build -c Release --output artifacts
 clone_depth: 1
 test_script:
   # restore packages for our unit tests
