@@ -5,11 +5,11 @@
 [![master][appveyor-master-badge]][appveyor-master-url]
 [![release][appveyor-release-badge]][appveyor-release-url]
 
+[nuget-stable-badge]: https://img.shields.io/badge/nuget--stable-1.0.0.35-blue.svg
+[nuget-stable-url]: https://www.nuget.org/packages/Qluent/
+
 [nuget-beta-badge]: https://img.shields.io/badge/nuget--beta-0.2.0.26--beta-orange.svg
 [nuget-beta-url]: https://www.nuget.org/packages/Qluent/
-
-[nuget-stable-badge]: https://img.shields.io/badge/nuget--stable-0.2.0.26--beta-blue.svg
-[nuget-stable-url]: https://www.nuget.org/packages/Qluent/
 
 [appveyor-master-badge]: https://ci.appveyor.com/api/projects/status/5uwjfc79j458m4ju/branch/master?svg=true&passingText=master%20passing&pendingText=master%20building&failingText=master%20failing
 [appveyor-master-url]: https://ci.appveyor.com/project/eoincampbell/qluent/branch/master
@@ -293,11 +293,32 @@ The message exception handler can be passed to the fluent api as either
 
 The consumer supports a number of other settings as well. 
 
+You can specify a unique Id for your consumer. This is useful for logging if you intend to 
+host multiple consumers in the same app.
 
+```csharp
+var consumer = Builder
+    .CreateAMessageConsumerFor<Job>()
+    .UsingQueue(consumerQueue)
+    .WithAnIdOf("my-custom-id")
+    ...
+    .Build();
+```
 
-While polling an empty
-queue the Consumer can be configured how often to re-poll while waiting. By default
-the consumer will requery the queue every 5 seconds.
+You can specify whether or not an unhandled exception should kill or cause your app to continue.
+Can be used in conjunction with the exception handling behavior of a queue to bubble and trap serialization exceptions.
+
+```csharp
+var consumer = Builder
+    .CreateAMessageConsumerFor<Job>()
+    .UsingQueue(consumerQueue)
+    .AndHandlesExceptions(By.Continuing)
+    ...
+    .Build();
+```
+
+While polling an empty queue the Consumer can be configured how often to re-poll while waiting. 
+By default the consumer will requery the queue every 5 seconds.
 
 You can override this behavior by providing a custom `Qluent.Consumers.Policies.IMessageConsumerQueuePollingPolicy`
 
@@ -559,8 +580,8 @@ Kafka, NService Bus, Mulesoft etc...)
   - ~~Documentation~~
   - ~~XMLDoc Comment the Public API~~
 - Logging
-  - NLog
+  - ~~NLog~~
   - Serilog
-- Big Documentation Tidy up
+- ~~Big Documentation Tidy up~~
 - ~~Nuget Packages~~
 - ~~AppVeyor Setup~~
