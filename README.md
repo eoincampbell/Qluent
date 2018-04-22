@@ -1,45 +1,23 @@
 # Qluent
 
-## Project Status
-
+[![Nuget Stable][nuget-stable-badge]][nuget-stable-url]
 [![Nuget Beta][nuget-beta-badge]][nuget-beta-url]
-[![master](https://ci.appveyor.com/api/projects/status/5uwjfc79j458m4ju/branch/master?svg=true)](https://ci.appveyor.com/project/eoincampbell/qluent/branch/master) 
+[![master][appveyor-master-badge]][appveyor-master-url]
+[![release][appveyor-release-badge]][appveyor-release-url]
 
-[nuget-beta-badge]: https://img.shields.io/badge/nuget--beta-0.2.0.26--beta-blue.svg
+[nuget-beta-badge]: https://img.shields.io/badge/nuget--beta-0.2.0.26--beta-orange.svg
 [nuget-beta-url]: https://www.nuget.org/packages/Qluent/
 
-[nuget-stable-badge]: https://img.shields.io/badge/nuget-0.2.0.26--beta-blue.svg
+[nuget-stable-badge]: https://img.shields.io/badge/nuget--stable-0.2.0.26--beta-blue.svg
 [nuget-stable-url]: https://www.nuget.org/packages/Qluent/
 
-## Documentation
+[appveyor-master-badge]: https://ci.appveyor.com/api/projects/status/5uwjfc79j458m4ju/branch/master?svg=true&passingText=master%20passing&pendingText=master%20building&failingText=master%20failing
+[appveyor-master-url]: https://ci.appveyor.com/project/eoincampbell/qluent/branch/master
 
- - [What is this?](#what-is-this)
- - [Working with Queues](#working-with-queues)
-   - [Creating a Queue](#creating-a-queue)
-   - [Basic Operations](#basic-operations)
-   - [Sending Messages](#sending-messages)
-   - [Receiving Messages](#receiving-messages)
-   - [Receiving Messages and Controlling Deletion](#receiving-messages-and-controlling-deletion)
- - [Working with Queue Consumers](#working-with-queue-consumers)
-   - [Creating a Consumer](#creating-a-consumer)
-   - [Processing Messages](#processing-messages)
-   - [Handling Exceptions](#handling-exceptions)
-   - [Consumer Settings](#consumer-settings)
-   - [Logging](#Logging)
- - [Advanced Features](#advanced-features)
-   - [Message Visibility](#message-visibility)
-   - [Handling Poison Messages](#handling-poison-messages)
-   - [Customising Serialization](#customising-serialization)
-   - [Asynchronous Model](#asynchronous-model)
- - [Background](#background)
-   - [Why do I need this?](#why-do-i-need-this)
-   - [Why did you build this?](#why-did-you-build-this)
-   - [What is this not?](#what-is-this-not)
-   - [Todo List](#todo-list)
+[appveyor-release-badge]: https://ci.appveyor.com/api/projects/status/5uwjfc79j458m4ju/branch/master?svg=true&passingText=release%20v0.2.0%20passing&pendingText=release%20v0.2.0%20building&failingText=release%20v0.2.0%20failing
+[appveyor-release-url]: https://ci.appveyor.com/project/eoincampbell/qluent/branch/release/v0.2.0
 
 ---
-
-## What is this?
 
 ***Qluent*** is a ***Fluent Queue Client***
 
@@ -63,6 +41,33 @@ var consumer = Builder
 
 await consumer.Start()
 ```
+
+---
+
+## Documentation
+
+ - [Working with Queues](#working-with-queues)
+   - [Creating a Queue](#creating-a-queue)
+   - [Basic Operations](#basic-operations)
+   - [Sending Messages](#sending-messages)
+   - [Receiving Messages](#receiving-messages)
+   - [Receiving Messages and Controlling Deletion](#receiving-messages-and-controlling-deletion)
+ - [Working with Queue Consumers](#working-with-queue-consumers)
+   - [Creating a Consumer](#creating-a-consumer)
+   - [Processing Messages](#processing-messages)
+   - [Handling Exceptions](#handling-exceptions)
+   - [Consumer Settings](#consumer-settings)
+   - [Logging](#Logging)
+ - [Advanced Features](#advanced-features)
+   - [Message Visibility](#message-visibility)
+   - [Handling Poison Messages](#handling-poison-messages)
+   - [Customising Serialization](#customising-serialization)
+   - [Asynchronous Model](#asynchronous-model)
+ - [Background](#background)
+   - [Why do I need this?](#why-do-i-need-this)
+   - [Why did you build this?](#why-did-you-build-this)
+   - [What is this not?](#what-is-this-not)
+   - [Todo List](#todo-list)
 
 ---
 
