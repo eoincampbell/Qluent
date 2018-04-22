@@ -41,6 +41,7 @@ test_script:
   # run the unit tests (requires changing into the test directory)
   - cmd: cd src
   - cmd: cd Qluent.NetCore.Tests
+  - ps: if (! (ps | ? {$_.path -eq $prog})) {& $prog}
   - cmd: dotnet test
 on_finish :
   # any cleanup in here
