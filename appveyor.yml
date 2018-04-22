@@ -3,8 +3,8 @@ image: Visual Studio 2017
 branches:
   only:
   - master
-  - release/*
-  - feature/*
+  - /release.*/
+  - /feature.*/
 init:
   # Good practise, because Windows line endings are different from Unix/Linux ones
   - cmd: git config --global core.autocrlf true
