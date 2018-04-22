@@ -1,13 +1,17 @@
 ﻿namespace Qluent.Consumers
 {
+    using NLog;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Handlers;
     using Policies;
+    using Policies.ConsumerExceptionBehavior;
 
     internal class MessageConsumer<T> : IMessageConsumer<T>
     {
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
+
         private readonly IMessageConsumerSettings _settings;
         private readonly IAzureStorageQueue<T> _queue;
         private readonly IMessageConsumerQueuePolingPolicy _queuePolingPolicy;
@@ -25,7 +29,6 @@
             IMessageExceptionHandler<T> exceptionHandler
             )
         {
-            
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _queue = queue ?? throw new ArgumentNullException(nameof(queue)); 
             _queuePolingPolicy = queuePolingPolicy ?? throw new ArgumentNullException(nameof(queue));
@@ -36,6 +39,8 @@
 
         public async Task Start(CancellationToken cancellationToken)
         {
+            _logger.Info($"Consumer-{_settings.Id}: Starting");
+
             while (!cancellationToken.IsCancellationRequested)
             {
                 try
@@ -54,12 +59,11 @@
 
                         await Task.Delay(_queuePolingPolicy.NextDelay(false), cancellationToken);
                     }
-
                     
-
                     try
                     {
                         //attempt to process the message
+                        _logger.Debug($"Consumer-{_settings.Id}: Handling Message: {currentMessage.MessageId}");
                         var handlerSuccess = await _messageHandler.Handle(currentMessage, cancellationToken);
 
                         if (handlerSuccess ||   
@@ -71,30 +75,43 @@
                         }
                         else
                         {
+                            _logger.Debug($"Consumer-{_settings.Id}: Executing failed handler on message: {currentMessage.MessageId}");
                             await _failedMessageHandler.Handle(currentMessage, cancellationToken);
                             await _queue.DeleteAsync(currentMessage, cancellationToken);       
                         }
                     }
                     catch (Exception ex)
                     {
+                        _logger.Error(ex, $"Consumer-{_settings.Id}: Exception occured while processing {currentMessage}");
                         try
                         {
-                            if (_failedMessageHandler != null)
+                            if (_exceptionHandler != null)
                             {
+                                _logger.Debug($"Consumer-{_settings.Id}: Executing exception handler on message: {currentMessage.MessageId}");
                                 await _exceptionHandler.Handle(currentMessage, ex, cancellationToken);
                             }
                         }
-                        catch
+                        catch(Exception nex)
                         {
-                            //swallow & NLog.
+                            _logger.Error(nex, $"Consumer-{_settings.Id}: Exception occured while attempt to handle outer exception for {currentMessage}");
                         }
                     }                    
                 }
                 catch (Exception ex)
                 {
-                    //Handle option Setting that states escaped exceptions should kill or continue
+                    if (_settings.Behavior == By.Exiting)
+                    {
+                        _logger.Fatal(ex, $"Consumer-{_settings.Id}: An exception occurred which FATALLY terminated the consumer.");
+                        throw;
+                    }
+                    else if (_settings.Behavior == By.Continuing)
+                    {
+                        _logger.Error(ex, $"Consumer-{_settings.Id}: An exception occurred and the consumer continued iterating. A message may have been lost");
+                    }
                 }
             }
+
+            _logger.Info($"Consumer-{_settings.Id}: Stopping");
         }
     }
 }

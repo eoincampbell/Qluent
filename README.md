@@ -1,43 +1,23 @@
 # Qluent
 
-## Project Status
+[![Nuget Stable][nuget-stable-badge]][nuget-stable-url]
+[![Nuget Beta][nuget-beta-badge]][nuget-beta-url]
+[![master][appveyor-master-badge]][appveyor-master-url]
+[![release][appveyor-release-badge]][appveyor-release-url]
 
-|   | Status  |
-|---|---|
-| Project | [![Build status](https://ci.appveyor.com/api/projects/status/5uwjfc79j458m4ju?svg=true)](https://ci.appveyor.com/project/eoincampbell/qluent) |
-| `Master` | [![Build status](https://ci.appveyor.com/api/projects/status/5uwjfc79j458m4ju/branch/master?svg=true)](https://ci.appveyor.com/project/eoincampbell/qluent/branch/master) |
-| `Release/v1.0.0` | |
+[nuget-beta-badge]: https://img.shields.io/badge/nuget--beta-0.2.0.26--beta-orange.svg
+[nuget-beta-url]: https://www.nuget.org/packages/Qluent/
 
+[nuget-stable-badge]: https://img.shields.io/badge/nuget--stable-0.2.0.26--beta-blue.svg
+[nuget-stable-url]: https://www.nuget.org/packages/Qluent/
 
-## Documentation
+[appveyor-master-badge]: https://ci.appveyor.com/api/projects/status/5uwjfc79j458m4ju/branch/master?svg=true&passingText=master%20passing&pendingText=master%20building&failingText=master%20failing
+[appveyor-master-url]: https://ci.appveyor.com/project/eoincampbell/qluent/branch/master
 
- - [What is this?](#what-is-this)
- - [Working with Queues](#working-with-queues)
-   - [Creating a Queue](#creating-a-queue)
-   - [Basic Operations](#basic-operations)
-   - [Sending Messages](#sending-messages)
-   - [Receiving Messages](#receiving-messages)
-   - [Receiving Messages and Controlling Deletion](#receiving-messages-and-controlling-deletion)
- - [Working with Queue Consumers](#working-with-queue-consumers)
-   - [Creating a Consumer](#creating-a-consumer)
-   - [Processing Messages](#processing-messages)
-   - [Handling Exceptions](#handling-exceptions)
-   - [Consumer Settings](#consumer-settings)
-   - [Logging](#Logging)
- - [Advanced Features](#advanced-features)
-   - [Message Visibility](#message-visibility)
-   - [Handling Poison Messages](#handling-poison-messages)
-   - [Customising Serialization](#customising-serialization)
-   - [Asynchronous Model](#asynchronous-model)
- - [Background](#background)
-   - [Why do I need this?](#why-do-i-need-this)
-   - [Why did you build this?](#why-did-you-build-this)
-   - [What is this not?](#what-is-this-not)
-   - [Todo List](#todo-list)
+[appveyor-release-badge]: https://ci.appveyor.com/api/projects/status/5uwjfc79j458m4ju/branch/master?svg=true&passingText=release%20v0.2.0%20passing&pendingText=release%20v0.2.0%20building&failingText=release%20v0.2.0%20failing
+[appveyor-release-url]: https://ci.appveyor.com/project/eoincampbell/qluent/branch/release/v0.2.0
 
 ---
-
-## What is this?
 
 ***Qluent*** is a ***Fluent Queue Client***
 
@@ -64,9 +44,35 @@ await consumer.Start()
 
 ---
 
-## Working with Queues
+## Documentation
+
+ - [Working with Queues](#working-with-queues)
+   - [Creating a Queue](#creating-a-queue)
+   - [Basic Operations](#basic-operations)
+   - [Sending Messages](#sending-messages)
+   - [Receiving Messages](#receiving-messages)
+   - [Receiving Messages and Controlling Deletion](#receiving-messages-and-controlling-deletion)
+ - [Working with Queue Consumers](#working-with-queue-consumers)
+   - [Creating a Consumer](#creating-a-consumer)
+   - [Processing Messages](#processing-messages)
+   - [Handling Exceptions](#handling-exceptions)
+   - [Consumer Settings](#consumer-settings)
+   - [Logging](#Logging)
+ - [Advanced Features](#advanced-features)
+   - [Message Visibility](#message-visibility)
+   - [Handling Poison Messages](#handling-poison-messages)
+   - [Customising Serialization](#customising-serialization)
+   - [Asynchronous Model](#asynchronous-model)
+ - [Background](#background)
+   - [Why do I need this?](#why-do-i-need-this)
+   - [Why did you build this?](#why-did-you-build-this)
+   - [What is this not?](#what-is-this-not)
+   - [Todo List](#todo-list)
 
 ---
+
+## Working with Queues
+
 
 ### Creating a Queue
 
@@ -285,7 +291,11 @@ The message exception handler can be passed to the fluent api as either
 
 ### Consumer Settings
 
-The consumer supports a number of other settings as well. While polling an empty
+The consumer supports a number of other settings as well. 
+
+
+
+While polling an empty
 queue the Consumer can be configured how often to re-poll while waiting. By default
 the consumer will requery the queue every 5 seconds.
 
@@ -309,7 +319,10 @@ var consumer = Builder
 
 ### Logging
 
-//TODO
+The consumer supports very basic logging using NLog.
+
+Simply configure NLog as you typically would (specifying targets, formats and filter rules) and the consumer will output 
+messages on progress including startup, shutdown, handler execution & exception messages.
 
 ---
 
@@ -549,5 +562,5 @@ Kafka, NService Bus, Mulesoft etc...)
   - NLog
   - Serilog
 - Big Documentation Tidy up
-- Nuget Packages
-- AppVeyor Setup
+- ~~Nuget Packages~~
+- ~~AppVeyor Setup~~

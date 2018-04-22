@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Qluent.Consumers.Policies.ConsumerExceptionBehavior;
 
 namespace Qluent.Builders
 {
@@ -27,6 +28,18 @@ namespace Qluent.Builders
             return this;
         }
 
+        public IMessageConsumerBuilder<T> WithAnIdOf(string id)
+        {
+            _settings.Id = id;
+            return this;
+        }
+
+        public IMessageConsumerBuilder<T> AndHandlesExceptions(By behavior)
+        {
+            _settings.Behavior = behavior;
+            return this;
+        }
+
         public IMessageConsumerBuilder<T> ThatHandlesMessagesUsing(IMessageHandler<T> messageHandler)
         {
             _messageHandler = messageHandler;
@@ -51,13 +64,13 @@ namespace Qluent.Builders
             return this;
         }
 
-        public IMessageConsumerBuilder<T> AndHandlesExceptionsUsing(IMessageExceptionHandler<T> messageExceptionHandler)
+        public IMessageConsumerBuilder<T> AndHandlesMessageExceptionsUsing(IMessageExceptionHandler<T> messageExceptionHandler)
         {
             _exceptionHandler = messageExceptionHandler;
             return this;
         }
 
-        public IMessageConsumerBuilder<T> AndHandlesExceptionsUsing(Func<IMessage<T>, Exception, CancellationToken, Task<bool>> messageExceptionHandler)
+        public IMessageConsumerBuilder<T> AndHandlesMessageExceptionsUsing(Func<IMessage<T>, Exception, CancellationToken, Task<bool>> messageExceptionHandler)
         {
             _exceptionHandler = new InternalFunctionMessageExceptionHandler<T>(messageExceptionHandler);
             return this;
