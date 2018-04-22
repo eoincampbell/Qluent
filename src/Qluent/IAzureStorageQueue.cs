@@ -72,7 +72,7 @@
         /// </summary>
         /// <param name="messageCount">The message count.</param>
         /// <returns>
-        ///     A <see cref="Task{IEnumerable{T}}"/> that represents the asynchronous operation.
+        ///     A <see cref="Task{T}"/> that represents the asynchronous operation.
         ///     The task result contains an <see cref="IEnumerable{T}"/> of deserialized objects.
         /// </returns>
         Task<IEnumerable<T>> PeekAsync(int messageCount);
@@ -83,7 +83,7 @@
         /// <param name="messageCount">The message count.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for a task to complete.</param>
         /// <returns>
-        ///     A <see cref="Task{IEnumerable{T}}"/> object that represents the asynchronous operation.
+        ///     A <see cref="Task{T}"/> object that represents the asynchronous operation.
         ///     The task result contains an <see cref="IEnumerable{T}"/> of deserialized objects.
         /// </returns>
         Task<IEnumerable<T>> PeekAsync(int messageCount, CancellationToken cancellationToken);
@@ -112,7 +112,7 @@
         /// </summary>
         /// <param name="messageCount">The message count.</param>
         /// <returns>
-        ///     A <see cref="Task{IEnumerable{T}}"/> object that represents the asynchronous operation.
+        ///     A <see cref="Task{T}"/> object that represents the asynchronous operation.
         ///     The task result contains an <see cref="IEnumerable{T}"/> of deserialized objects.
         /// </returns>
         Task<IEnumerable<T>> PopAsync(int messageCount);
@@ -123,7 +123,7 @@
         /// <param name="messageCount">The message count.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for a task to complete.</param>
         /// <returns>
-        ///     A <see cref="Task{IEnumerable{T}}"/> object that represents the asynchronous operation.
+        ///     A <see cref="Task{T}"/> object that represents the asynchronous operation.
         ///     The task result contains an <see cref="IEnumerable{T}"/> of deserialized objects.
         /// </returns>
         Task<IEnumerable<T>> PopAsync(int messageCount, CancellationToken cancellationToken);
@@ -132,7 +132,7 @@
         ///     Initiates an asynchronous operation to get an object of type <typeparamref name="T"/> from the queue without deleting it
         /// </summary>
         /// <returns>
-        ///     A <see cref="Task{IMessage{T}}"/> object that represents the asynchronous operation.
+        ///     A <see cref="Task{T}"/> object that represents the asynchronous operation.
         ///     The task result contains the deserialized <typeparamref name="T"/> contained within an <see cref="IMessage{T}"/> wrapper
         /// </returns>
         Task<IMessage<T>> GetAsync();
@@ -142,7 +142,7 @@
         /// </summary>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for a task to complete.</param>
         /// <returns>
-        ///     A <see cref="Task{IMessage{T}}"/> object that represents the asynchronous operation.
+        ///     A <see cref="Task{T}"/> object that represents the asynchronous operation.
         ///     The task result contains the deserialized <typeparamref name="T"/> contained within an <see cref="IMessage{T}"/> wrapper
         /// </returns>
         Task<IMessage<T>> GetAsync(CancellationToken cancellationToken);
@@ -152,8 +152,8 @@
         /// </summary>
         /// <param name="messageCount">The message count.</param>
         /// <returns>
-        ///     A <see cref="Task{IEnumerable{IMessage{T}}}"/> object that represents the asynchronous operation.
-        ///     The task result contains an <see cref="IEnumerable{IMessage{T}}"/> of deserialized <typeparamref name="T"/> 
+        ///     A <see cref="Task{T}"/> object that represents the asynchronous operation.
+        ///     The task result contains an <see cref="IEnumerable{T}"/> of deserialized <typeparamref name="T"/> 
         ///     contained within an <see cref="IMessage{T}"/> wrapper
         /// </returns>
         Task<IEnumerable<IMessage<T>>> GetAsync(int messageCount);
@@ -164,14 +164,14 @@
         /// <param name="messageCount">The message count.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for a task to complete.</param>
         /// <returns>
-        ///     A <see cref="Task{IEnumerable{IMessage{T}}}"/> object that represents the asynchronous operation.
-        ///     The task result contains an <see cref="IEnumerable{IMessage{T}}"/> of deserialized <typeparamref name="T"/> 
+        ///     A <see cref="Task{T}"/> object that represents the asynchronous operation.
+        ///     The task result contains an <see cref="IEnumerable{T}"/> of deserialized <typeparamref name="T"/> 
         ///     contained within an <see cref="IMessage{T}"/> wrapper
         /// </returns>
         Task<IEnumerable<IMessage<T>>> GetAsync(int messageCount, CancellationToken cancellationToken);
 
         /// <summary>
-        ///     Initiates an asynchronous operation to delete an <see cref="IMessage{T}"/> from the queue using it's Id & PopReceipt
+        ///     Initiates an asynchronous operation to delete an <see cref="IMessage{T}"/> from the queue using it's Id and PopReceipt
         /// </summary>
         /// <param name="message">The message.</param>
         /// <returns>
@@ -180,7 +180,7 @@
         Task DeleteAsync(IMessage<T> message);
 
         /// <summary>
-        ///     Initiates an asynchronous operation to delete an <see cref="IMessage{T}"/> from the queue using it's Id & PopReceipt
+        ///     Initiates an asynchronous operation to delete an <see cref="IMessage{T}"/> from the queue using it's Id and PopReceipt
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for a task to complete.</param>
