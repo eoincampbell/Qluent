@@ -1,4 +1,4 @@
-version: 1.0.0.{build}
+version: 0.1.0.{build}
 image: Visual Studio 2017
 branches:
   only:
@@ -15,15 +15,15 @@ assembly_info:
   file: '**\GlobalAssemblyInfo.*'
   assembly_version: '{version}'
   assembly_file_version: '{version}'
-  assembly_informational_version: '{version} $(APPVEYOR_REPO_COMMIT)'
+  assembly_informational_version: '{version}-beta-$(APPVEYOR_REPO_COMMIT)'
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
-  version: '{version}'
-  package_version: '{version}'
+  version: '{version}-beta'
+  package_version: '{version}-beta'
   assembly_version: '{version}'
   file_version: '{version}'
-  informational_version: '{version} $(APPVEYOR_REPO_COMMIT)'
+  informational_version: '{version}-beta-$(APPVEYOR_REPO_COMMIT)'
 before_build:
   # Display .NET Core version
   - cmd: dotnet --version
