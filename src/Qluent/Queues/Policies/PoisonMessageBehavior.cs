@@ -11,7 +11,7 @@ namespace Qluent.Queues.Policies.PoisonMessageBehavior
         /// </summary>
         ThrowingExceptions,
         /// <summary>
-        /// The swallowing exceptions
+        /// Specifies that exceptions should be swallowed
         /// </summary>
         SwallowingExceptions
     }

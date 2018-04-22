@@ -1,4 +1,4 @@
-version: 0.2.0.{build}
+version: 1.0.0.{build}
 image: Visual Studio 2017
 branches:
   only:
@@ -13,11 +13,11 @@ install:
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
-  version: '{version}-beta'
-  package_version: '{version}-beta'
+  version: '{version}'
+  package_version: '{version}'
   assembly_version: '{version}'
   file_version: '{version}'
-  informational_version: '{version}-beta-$(APPVEYOR_REPO_COMMIT)'
+  informational_version: '{version}-$(APPVEYOR_REPO_COMMIT)'
 before_build:
   # Display .NET Core version
   - cmd: dotnet --version
